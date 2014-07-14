@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Title"
+        android:id="@+id/eventTitle"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="description"
+        android:id="@+id/eventDescription"
+        android:layout_toEndOf="@+id/eventTitle"
+        android:layout_below="@+id/eventTitle"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="5dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/location"
+        android:id="@+id/eventLocationLabel"
+        android:layout_below="@+id/eventDescription"
+        android:layout_alignLeft="@+id/eventDescription"
+        android:layout_alignStart="@+id/eventDescription"
+        android:layout_marginTop="5dp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/from"
+        android:id="@+id/eventFromLabel"
+        android:textStyle="bold"
+        android:layout_below="@+id/eventLocationLabel"
+        android:layout_alignLeft="@+id/eventLocationLabel"
+        android:layout_alignStart="@+id/eventLocationLabel"
+        android:layout_marginTop="3dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/to"
+        android:id="@+id/eventToLabel"
+        android:textStyle="bold"
+        android:layout_below="@+id/eventFromLabel"
+        android:layout_alignLeft="@+id/eventFromLabel"
+        android:layout_alignStart="@+id/eventFromLabel"
+        android:layout_marginTop="3dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Škola"
+        android:id="@+id/eventLocation"
+        android:layout_alignTop="@+id/eventLocationLabel"
+        android:layout_toRightOf="@+id/eventLocationLabel"
+        android:layout_toEndOf="@+id/eventLocationLabel"
+        android:layout_marginLeft="5dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="1.9.2009"
+        android:id="@+id/eventFrom"
+        android:layout_alignTop="@+id/eventFromLabel"
+        android:layout_alignLeft="@+id/eventLocation"
+        android:layout_alignStart="@+id/eventLocation" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="3.9.2009"
+        android:id="@+id/eventTo"
+        android:layout_alignTop="@+id/eventToLabel"
+        android:layout_alignLeft="@+id/eventFrom"
+        android:layout_alignStart="@+id/eventFrom" />
+
+</RelativeLayout>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">UTU</string>
+    <string name="title_section1">Úkoly</string>
+    <string name="title_section2">Události</string>
+    <string name="title_section3">Testy</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Nastavení</string>
+    <string name="location">Místo:</string>
+    <string name="from">Od:</string>
+    <string name="to">Do:</string>
+    <string name="datum">Datum:</string>
+    <string name="subject">Předmět:</string>
+    <string name="group">Skupina:</string>
+
+</resources>

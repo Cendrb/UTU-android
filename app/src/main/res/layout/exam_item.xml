@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Title"
+        android:id="@+id/examTitle"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="description"
+        android:id="@+id/examDescription"
+        android:layout_below="@+id/examTitle"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="5dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/datum"
+        android:id="@+id/examDatumLabel"
+        android:layout_below="@+id/examDescription"
+        android:layout_alignLeft="@+id/examDescription"
+        android:layout_alignStart="@+id/examDescription"
+        android:layout_marginTop="5dp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/subject"
+        android:id="@+id/examSubjectLabel"
+        android:textStyle="bold"
+        android:layout_below="@+id/examDatumLabel"
+        android:layout_alignLeft="@+id/examDatumLabel"
+        android:layout_alignStart="@+id/examDatumLabel"
+        android:layout_marginTop="3dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/group"
+        android:id="@+id/examGroupLabel"
+        android:textStyle="bold"
+        android:layout_below="@+id/examSubjectLabel"
+        android:layout_alignLeft="@+id/examSubjectLabel"
+        android:layout_alignStart="@+id/examSubjectLabel"
+        android:layout_marginTop="3dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="1. 9. 2009"
+        android:id="@+id/examDatum"
+        android:layout_toEndOf="@+id/examDescription"
+        android:layout_toRightOf="@+id/examDatumLabel"
+        android:layout_alignTop="@+id/examDatumLabel"
+        android:layout_marginLeft="20dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="MA"
+        android:id="@+id/examSubject"
+        android:layout_toEndOf="@+id/examDescription"
+        android:layout_alignTop="@+id/examSubjectLabel"
+        android:layout_alignLeft="@+id/examDatum"
+        android:layout_alignStart="@+id/examDatum" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="první"
+        android:id="@+id/examGroup"
+        android:layout_toEndOf="@+id/examDescription"
+        android:layout_alignTop="@+id/examGroupLabel"
+        android:layout_alignLeft="@+id/examSubject"
+        android:layout_alignStart="@+id/examSubject" />
+</RelativeLayout>
