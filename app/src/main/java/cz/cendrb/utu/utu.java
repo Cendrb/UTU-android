@@ -2,11 +2,13 @@ package cz.cendrb.utu;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
@@ -45,7 +47,11 @@ public class utu extends Activity implements ActionBar.TabListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_utu);
+
+        ProgressDialog dialog = ProgressDialog.show(this, "Čekejte prosím", "Probíhá stahování dat z webu", true);
+        dialog.show();
 
         try {
             DataLoader.load();

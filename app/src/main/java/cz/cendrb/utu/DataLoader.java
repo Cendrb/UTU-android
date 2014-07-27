@@ -1,7 +1,9 @@
 package cz.cendrb.utu;
 
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -37,6 +39,7 @@ public class DataLoader {
     public static Tasks tasks;
 
     public static void load() throws ExecutionException, InterruptedException {
+
         if (DataLoader.events == null)
             DataLoader.events = new Events();
         if (DataLoader.exams == null)
