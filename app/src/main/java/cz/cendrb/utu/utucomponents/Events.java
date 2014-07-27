@@ -10,22 +10,21 @@ import java.util.List;
 import cz.cendrb.utu.R;
 
 public class Events {
-	public List<Event> events;
-	public static String[] from;
-	public static int[] to;
+    public List<Event> events;
+    public static String[] from;
+    public static int[] to;
 
-	public Events(List<Event> Events) {
-		this.events = Events;
-		setFromAndTo();
-	}
+    public Events(List<Event> Events) {
+        this.events = Events;
+        setFromAndTo();
+    }
 
-	public Events() {
-		setFromAndTo();
-		events = new ArrayList<Event>();
-	}
+    public Events() {
+        setFromAndTo();
+        events = new ArrayList<Event>();
+    }
 
-    public void load(Element inEvents)
-    {
+    public void load(Element inEvents) {
         this.events.clear();
         for (int counter = inEvents.getChildNodes().getLength() - 1; counter > 0; counter--) {
             Node node = inEvents.getChildNodes().item(counter);
@@ -36,18 +35,18 @@ public class Events {
         }
     }
 
-	private void setFromAndTo() {
-        from = new String[] { Event.TITLE, Event.DESCRIPTION, Event.LOCATION, Event.START, Event.END };
-        to = new int[] { R.id.eventTitle, R.id.eventDescription, R.id.eventLocation, R.id.eventFrom, R.id.eventTo };
-	}
+    private void setFromAndTo() {
+        from = new String[]{Event.TITLE, Event.DESCRIPTION, Event.LOCATION, Event.START, Event.END};
+        to = new int[]{R.id.eventTitle, R.id.eventDescription, R.id.eventLocation, R.id.eventFrom, R.id.eventTo};
+    }
 
-	public List<HashMap<String, String>> getListForAdapter() {
-		List<HashMap<String, String>> data = new ArrayList<HashMap<String, String>>();
+    public List<HashMap<String, String>> getListForAdapter() {
+        List<HashMap<String, String>> data = new ArrayList<HashMap<String, String>>();
 
-		for (Event event : events) {
-			data.add(event.getRecord());
-		}
-		
-		return data;
-	}
+        for (Event event : events) {
+            data.add(event.getRecord());
+        }
+
+        return data;
+    }
 }

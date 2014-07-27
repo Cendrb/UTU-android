@@ -1,5 +1,7 @@
 package cz.cendrb.utu;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -9,6 +11,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -20,7 +23,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -38,11 +40,11 @@ public class DataLoader {
     public static Tasks tasks;
 
     public static void load() throws ExecutionException, InterruptedException {
-        if(DataLoader.events == null)
+        if (DataLoader.events == null)
             DataLoader.events = new Events();
-        if(DataLoader.exams == null)
+        if (DataLoader.exams == null)
             DataLoader.exams = new Exams();
-        if(DataLoader.tasks == null)
+        if (DataLoader.tasks == null)
             DataLoader.tasks = new Tasks();
 
         HttpLoader loader = new HttpLoader();
@@ -71,11 +73,13 @@ public class DataLoader {
         Collections.reverse(DataLoader.tasks.tasks);
     }
 }
+
 class HttpLoader extends AsyncTask<String, Void, OutputStream> {
     @Override
     protected OutputStream doInBackground(String... params) {
         HttpClient client = new DefaultHttpClient();
         try {
+            //HttpPost httpPost = new HttpPost(params[0]);
             HttpResponse response = client.execute(new HttpGet(params[0]));
             StatusLine status = response.getStatusLine();
             if (status.getStatusCode() == HttpStatus.SC_OK) {

@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -90,13 +91,15 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.utu, menu);
+        this.menu = menu;
         return true;
     }
+
+    Menu menu;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -105,6 +108,24 @@ public class utu extends Activity implements ActionBar.TabListener {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            return true;
+        }
+        if (id == R.id.action_refresh) {
+            item.setEnabled(false);
+            try {
+                DataLoader.load();
+                mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
+                int current = mViewPager.getCurrentItem();
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+                mViewPager.setCurrentItem(current, false);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            finally {
+                item.setEnabled(true);
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -194,8 +215,7 @@ public class utu extends Activity implements ActionBar.TabListener {
             View rootView = inflater.inflate(R.layout.fragment_utu, container, false);
             ListView list = (ListView) rootView.findViewById(R.id.utuListView);
 
-            switch(getArguments().getInt(ARG_SECTION_NUMBER))
-            {
+            switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
                 case 1:
                     list.setAdapter(new SimpleAdapter(container.getContext(), DataLoader.tasks.getListForAdapter(), R.layout.task_item, Tasks.from, Tasks.to));
                     break;
