@@ -1,7 +1,12 @@
 package cz.cendrb.utu;
 
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -38,7 +43,9 @@ public class DataLoader {
     public static Exams exams;
     public static Tasks tasks;
 
-    public static void load() throws ExecutionException, InterruptedException {
+    private static LoadResult loadResult;
+
+    public static LoadResult getData(final Context context) {
 
         if (DataLoader.events == null)
             DataLoader.events = new Events();
@@ -47,12 +54,67 @@ public class DataLoader {
         if (DataLoader.tasks == null)
             DataLoader.tasks = new Tasks();
 
-        HttpLoader loader = new HttpLoader();
+        if(DataLoader.isOnline(context)) {
 
-        String data = loader.execute("http://utu.herokuapp.com/details.xml").get().toString();
 
-        XMLParser parser = new XMLParser();
-        setData(parser.execute(data).get());
+            HttpLoader loader = new HttpLoader();
+
+            String data = null;
+            try {
+                OutputStream stream = loader.execute("http://utu.herokuapp.com/details.xml").get();
+                if (stream == null) {
+                    return LoadResult.Failure;
+                }
+                else {
+                    data = stream.toString();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+
+            XMLParser parser = new XMLParser();
+            try {
+                setData(parser.execute(data).get());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+            return LoadResult.Success;
+        }
+        else
+        {
+            loadResult = LoadResult.Nothing;
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage(context.getResources().getString(R.string.unable_to_connect_to_the_internet));
+            builder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    DataLoader.getData(context);
+                }
+            });
+            builder.setNegativeButton(context.getResources().getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+
+                }
+            });
+            builder.setNeutralButton(context.getResources().getString(R.string.load_latest_downloaded_data), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    loadResult = LoadResult.Success;
+                    Toast.makeText(context, "Nothing happened", Toast.LENGTH_SHORT).show();
+                    // TODO Load from backup
+                }
+            });
+            builder.show();
+
+            return loadResult;
+        }
     }
 
     private static void setData(Document doc) {
@@ -72,8 +134,17 @@ public class DataLoader {
         Collections.reverse(DataLoader.exams.exams);
         Collections.reverse(DataLoader.tasks.tasks);
     }
-}
 
+    public static boolean isOnline(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+            return true;
+        }
+        return false;
+    }
+}
 class HttpLoader extends AsyncTask<String, Void, OutputStream> {
     @Override
     protected OutputStream doInBackground(String... params) {

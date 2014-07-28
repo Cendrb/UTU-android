@@ -7,8 +7,10 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
@@ -44,34 +46,21 @@ public class utu extends Activity implements ActionBar.TabListener {
      */
     private ViewPager mViewPager;
 
+    //Handler handler = new Handler();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_utu);
 
-        ProgressDialog dialog = ProgressDialog.show(this, "Čekejte prosím", "Probíhá stahování dat z webu", true);
-        dialog.show();
+        mViewPager = (ViewPager) findViewById(R.id.pager);
 
-        try {
-            DataLoader.load();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        refresh();
 
         // Set up the action bar.
         final ActionBar actionBar = getActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
 
         // When swiping between different sections, select the corresponding
         // tab. We can also use ActionBar.Tab#select() to do this if we have
@@ -97,6 +86,24 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
     }
 
+    private void refresh()
+    {
+        LoadResult result = DataLoader.getData(this);
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
+        mViewPager.setAdapter(mSectionsPagerAdapter);
+        if (result == LoadResult.Failure) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(getResources().getString(R.string.failed_to_load_data));
+            builder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    refresh();
+                }
+            });
+            builder.show();
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -118,20 +125,13 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
         if (id == R.id.action_refresh) {
             item.setEnabled(false);
-            try {
-                DataLoader.load();
-                mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
-                int current = mViewPager.getCurrentItem();
-                mViewPager.setAdapter(mSectionsPagerAdapter);
-                mViewPager.setCurrentItem(current, false);
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            finally {
-                item.setEnabled(true);
-            }
+            int current = mViewPager.getCurrentItem();
+            Refresher refresher = new Refresher(this);
+            refresher.execute();
+            mViewPager.setCurrentItem(current, false);
+
+            item.setEnabled(true);
+
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -236,4 +236,54 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
     }
 
+    public class Refresher extends AsyncTask<Void, Void, Void> {
+        Context context;
+        boolean runAgain;
+        private ProgressDialog dialog;
+
+        public Refresher(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            runAgain = true;
+            while (runAgain) {
+                runAgain = false;
+                LoadResult result = DataLoader.getData(context);
+                mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+                if (result == LoadResult.Failure) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setMessage(context.getResources().getString(R.string.failed_to_load_data));
+                    builder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            runAgain = true;
+                        }
+                    });
+                    builder.show();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            dialog = new ProgressDialog(context);
+            dialog.setMessage(context.getResources().getString(R.string.loading_data_from_web));
+            dialog.setTitle(context.getResources().getString(R.string.wait));
+            dialog.setIndeterminate(true);
+            dialog.show();
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void loadResult) {
+            dialog.hide();
+            super.onPostExecute(loadResult);
+        }
+    }
+
 }
+
