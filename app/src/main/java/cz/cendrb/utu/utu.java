@@ -27,6 +27,7 @@ import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
@@ -258,22 +259,23 @@ public class utu extends Activity implements ActionBar.TabListener {
     }
 
     public class Refresher extends AsyncTask<Void, Void, LoadResult> {
-        Context context;
+        Activity context;
         ProgressDialog dialog;
         Runnable postAction;
+        File backupFile;
 
-        public Refresher(Context context) {
+        public Refresher(Activity context) {
             this.context = context;
         }
 
-        public Refresher(Context context, Runnable postAction) {
+        public Refresher(Activity context, Runnable postAction) {
             this.context = context;
             this.postAction = postAction;
         }
 
         @Override
         protected LoadResult doInBackground(Void... voids) {
-            File backupFile = context.getFileStreamPath(DataLoader.BACKUP_FILE_NAME);
+            backupFile = context.getFileStreamPath(DataLoader.BACKUP_FILE_NAME);
             if(isOnline(context))
                 if(utu.dataLoader.loadFromNetAndBackup(backupFile))
                     return LoadResult.WebSuccess;
@@ -297,16 +299,19 @@ public class utu extends Activity implements ActionBar.TabListener {
             dialog.hide();
             if(postAction != null)
                 postAction.run();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd. MM. yyyy HH:mm");
             switch (loadResult)
             {
                 case WebSuccess:
+                    context.setTitle(context.getString(R.string.app_name) + " (aktuální data)");
                     break;
                 case BackupSuccess:
                     // TODO Add "byla použita data ze dne 4.1.2014"
-                    Toast.makeText(context, R.string.successfully_loaded_from_backup, Toast.LENGTH_SHORT).show();
+                    context.setTitle(context.getString(R.string.app_name) + " (" + sdf.format(backupFile.lastModified()) + ")");
+                    Toast.makeText(context, R.string.successfully_loaded_from_backup, Toast.LENGTH_LONG).show();
                     break;
                 case Failure:
-                    Toast.makeText(context, R.string.failed_to_load_data, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, R.string.failed_to_load_data, Toast.LENGTH_LONG).show();
                     break;
             }
             super.onPostExecute(loadResult);
