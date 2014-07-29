@@ -9,6 +9,10 @@ import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
+import android.content.res.Resources;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
@@ -20,7 +24,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Toast;
 
+import java.io.File;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
@@ -40,23 +46,48 @@ public class utu extends Activity implements ActionBar.TabListener {
      * {@link android.support.v13.app.FragmentStatePagerAdapter}.
      */
     SectionsPagerAdapter mSectionsPagerAdapter;
+    Menu menu;
 
+    //Handler handler = new Handler();
     /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
 
-    //Handler handler = new Handler();
+    public static DataLoader dataLoader;
+
+    public static boolean isOnline(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+            return true;
+        }
+        return false;
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        dataLoader = new DataLoader();
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         setContentView(R.layout.activity_utu);
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
 
-        refresh();
+        try {
+            new Refresher(this).execute().get();
+            mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
+            mViewPager.setAdapter(mSectionsPagerAdapter);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
 
         // Set up the action bar.
         final ActionBar actionBar = getActionBar();
@@ -86,22 +117,16 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
     }
 
-    private void refresh()
-    {
-        LoadResult result = DataLoader.getData(this);
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
-        mViewPager.setAdapter(mSectionsPagerAdapter);
-        if (result == LoadResult.Failure) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(getResources().getString(R.string.failed_to_load_data));
-            builder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    refresh();
-                }
-            });
-            builder.show();
-        }
+    private void refresh(final int pageIndex) {
+        Refresher refresher = new Refresher(this, new Runnable() {
+            @Override
+            public void run() {
+                mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
+                mViewPager.setAdapter(mSectionsPagerAdapter);
+                mViewPager.setCurrentItem(pageIndex, false);
+            }
+        });
+        refresher.execute();
     }
 
     @Override
@@ -111,8 +136,6 @@ public class utu extends Activity implements ActionBar.TabListener {
         this.menu = menu;
         return true;
     }
-
-    Menu menu;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -126,9 +149,7 @@ public class utu extends Activity implements ActionBar.TabListener {
         if (id == R.id.action_refresh) {
             item.setEnabled(false);
             int current = mViewPager.getCurrentItem();
-            Refresher refresher = new Refresher(this);
-            refresher.execute();
-            mViewPager.setCurrentItem(current, false);
+            refresh(current);
 
             item.setEnabled(true);
 
@@ -150,6 +171,52 @@ public class utu extends Activity implements ActionBar.TabListener {
 
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+    }
+
+    /**
+     * A placeholder fragment containing a simple view.
+     */
+    public static class PlaceholderFragment extends Fragment {
+        /**
+         * The fragment argument representing the section number for this
+         * fragment.
+         */
+        private static final String ARG_SECTION_NUMBER = "section_number";
+
+        public PlaceholderFragment() {
+        }
+
+        /**
+         * Returns a new instance of this fragment for the given section
+         * number.
+         */
+        public static PlaceholderFragment newInstance(int sectionNumber) {
+            PlaceholderFragment fragment = new PlaceholderFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_utu, container, false);
+            ListView list = (ListView) rootView.findViewById(R.id.utuListView);
+
+            switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
+                case 1:
+                    list.setAdapter(new SimpleAdapter(container.getContext(), utu.dataLoader.tasks.getListForAdapter(), R.layout.task_item, Tasks.from, Tasks.to));
+                    break;
+                case 2:
+                    list.setAdapter(new SimpleAdapter(container.getContext(), utu.dataLoader.events.getListForAdapter(), R.layout.event_item, Events.from, Events.to));
+                    break;
+                case 3:
+                    list.setAdapter(new SimpleAdapter(container.getContext(), utu.dataLoader.exams.getListForAdapter(), R.layout.exam_item, Exams.from, Exams.to));
+                    break;
+            }
+            return rootView;
+        }
     }
 
     /**
@@ -190,82 +257,29 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_utu, container, false);
-            ListView list = (ListView) rootView.findViewById(R.id.utuListView);
-
-            switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
-                case 1:
-                    list.setAdapter(new SimpleAdapter(container.getContext(), DataLoader.tasks.getListForAdapter(), R.layout.task_item, Tasks.from, Tasks.to));
-                    break;
-                case 2:
-                    list.setAdapter(new SimpleAdapter(container.getContext(), DataLoader.events.getListForAdapter(), R.layout.event_item, Events.from, Events.to));
-                    break;
-                case 3:
-                    list.setAdapter(new SimpleAdapter(container.getContext(), DataLoader.exams.getListForAdapter(), R.layout.exam_item, Exams.from, Exams.to));
-                    break;
-            }
-            return rootView;
-        }
-    }
-
-    public class Refresher extends AsyncTask<Void, Void, Void> {
+    public class Refresher extends AsyncTask<Void, Void, LoadResult> {
         Context context;
-        boolean runAgain;
-        private ProgressDialog dialog;
+        ProgressDialog dialog;
+        Runnable postAction;
 
         public Refresher(Context context) {
             this.context = context;
         }
 
+        public Refresher(Context context, Runnable postAction) {
+            this.context = context;
+            this.postAction = postAction;
+        }
+
         @Override
-        protected Void doInBackground(Void... voids) {
-            runAgain = true;
-            while (runAgain) {
-                runAgain = false;
-                LoadResult result = DataLoader.getData(context);
-                mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
-                mViewPager.setAdapter(mSectionsPagerAdapter);
-                if (result == LoadResult.Failure) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                    builder.setMessage(context.getResources().getString(R.string.failed_to_load_data));
-                    builder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            runAgain = true;
-                        }
-                    });
-                    builder.show();
-                }
-            }
-            return null;
+        protected LoadResult doInBackground(Void... voids) {
+            File backupFile = context.getFileStreamPath(DataLoader.BACKUP_FILE_NAME);
+            if(isOnline(context))
+                if(utu.dataLoader.loadFromNetAndBackup(backupFile))
+                    return LoadResult.WebSuccess;
+            if(backupFile.exists() && utu.dataLoader.loadFromBackup(backupFile))
+                return LoadResult.BackupSuccess;
+            return LoadResult.Failure;
         }
 
         @Override
@@ -279,8 +293,22 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
 
         @Override
-        protected void onPostExecute(Void loadResult) {
+        protected void onPostExecute(LoadResult loadResult) {
             dialog.hide();
+            if(postAction != null)
+                postAction.run();
+            switch (loadResult)
+            {
+                case WebSuccess:
+                    break;
+                case BackupSuccess:
+                    // TODO Add "byla použita data ze dne 4.1.2014"
+                    Toast.makeText(context, R.string.successfully_loaded_from_backup, Toast.LENGTH_SHORT).show();
+                    break;
+                case Failure:
+                    Toast.makeText(context, R.string.failed_to_load_data, Toast.LENGTH_SHORT).show();
+                    break;
+            }
             super.onPostExecute(loadResult);
         }
     }

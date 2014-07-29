@@ -10,9 +10,9 @@
     <string name="location">Místo:</string>
     <string name="from">Od:</string>
     <string name="to">Do:</string>
-    <string name="datum">Datum:</string>
-    <string name="subject">Předmět:</string>
-    <string name="group">Skupina:</string>
+    <string name="datum">Datum</string>
+    <string name="subject">Předmět</string>
+    <string name="group">Skupina</string>
     <string name="action_refresh">Obnovit</string>
     <string name="action_manual_select">Ruční výběr</string>
     <string name="title_activity_manual_select">Ruční výběr</string>
@@ -21,7 +21,12 @@
     <string name="unable_to_connect_to_the_internet">Nelze se připojit k internetu</string>
     <string name="try_again">Zkusit znovu</string>
     <string name="load_latest_downloaded_data">Nahrát poslední stažená data</string>
-    <string name="failed_to_load_data">Nepodařilo se získat žádná data</string>
     <string name="cancel">Zrušit</string>
+    <string name="beginning_of_choice">Počátek výběru</string>
+    <string name="end_of_choice">Konec výběru</string>
+    <string name="first">první</string>
+    <string name="second">druhá</string>
+    <string name="successfully_loaded_from_backup">Internetové připojení není dostupné. Byla použita poslední stažená data.</string>
+    <string name="failed_to_load_data">Data nemohla být nahrána. (Internetové připojení je nedostupné a žádná záloha nebyla nalezena)</string>
 
 </resources>

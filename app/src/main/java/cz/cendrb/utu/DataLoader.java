@@ -1,14 +1,11 @@
 package cz.cendrb.utu;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
-import android.util.Log;
-import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -22,7 +19,12 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
@@ -39,85 +41,103 @@ import cz.cendrb.utu.utucomponents.Tasks;
 
 public class DataLoader {
 
-    public static Events events;
-    public static Exams exams;
-    public static Tasks tasks;
+    public static final String BACKUP_FILE_NAME = "utudata";
+    public Events events;
+    public Exams exams;
+    public Tasks tasks;
 
-    private static LoadResult loadResult;
+    public DataLoader() {
+        events = new Events();
+        exams = new Exams();
+        tasks = new Tasks();
+    }
 
-    public static LoadResult getData(final Context context) {
-
-        if (DataLoader.events == null)
-            DataLoader.events = new Events();
-        if (DataLoader.exams == null)
-            DataLoader.exams = new Exams();
-        if (DataLoader.tasks == null)
-            DataLoader.tasks = new Tasks();
-
-        if(DataLoader.isOnline(context)) {
-
-
-            HttpLoader loader = new HttpLoader();
-
-            String data = null;
-            try {
-                OutputStream stream = loader.execute("http://utu.herokuapp.com/details.xml").get();
-                if (stream == null) {
-                    return LoadResult.Failure;
-                }
-                else {
-                    data = stream.toString();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-
-
-            XMLParser parser = new XMLParser();
-            try {
-                setData(parser.execute(data).get());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-
-            return LoadResult.Success;
+    public boolean loadFromNetAndBackup(File backupFile) {
+        try {
+            HttpClient client = new DefaultHttpClient();
+            HttpResponse response = client.execute(new HttpGet("http://utu.herokuapp.com/details.xml"));
+            StatusLine status = response.getStatusLine();
+            if (status.getStatusCode() == HttpStatus.SC_OK) {
+                OutputStream byteStream = new ByteArrayOutputStream();
+                response.getEntity().writeTo(byteStream);
+                String rawXml = byteStream.toString();
+                Document doc = parseXML(rawXml);
+                if (doc == null)
+                    return false;
+                setData(doc);
+                backupData(rawXml, backupFile);
+                return true;
+            } else
+                return false;
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        else
-        {
-            loadResult = LoadResult.Nothing;
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setMessage(context.getResources().getString(R.string.unable_to_connect_to_the_internet));
-            builder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    DataLoader.getData(context);
-                }
-            });
-            builder.setNegativeButton(context.getResources().getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
+        return false;
+    }
 
-                }
-            });
-            builder.setNeutralButton(context.getResources().getString(R.string.load_latest_downloaded_data), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    loadResult = LoadResult.Success;
-                    Toast.makeText(context, "Nothing happened", Toast.LENGTH_SHORT).show();
-                    // TODO Load from backup
-                }
-            });
-            builder.show();
+    public boolean loadFromBackup(File file)
+    {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
 
-            return loadResult;
+            while (line != null) {
+                sb.append(line);
+                sb.append("\n");
+                line = br.readLine();
+            }
+            String content = sb.toString();
+            br.close();
+            setData(parseXML(content));
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void backupData(String rawXml, File file) {
+        try {
+            FileOutputStream outputStream = new FileOutputStream(file);
+            outputStream.write(rawXml.getBytes());
+            outputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    private static void setData(Document doc) {
+    private Document parseXML(String rawXml) {
+        Document doc;
+        DocumentBuilderFactory dbf;
+        dbf = DocumentBuilderFactory.newInstance();
+        try {
+
+            DocumentBuilder db = dbf.newDocumentBuilder();
+
+            InputSource is = new InputSource();
+            is.setCharacterStream(new StringReader(rawXml));
+            doc = db.parse(is);
+
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+            return null;
+        } catch (SAXException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        // return DOM
+        return doc;
+    }
+
+    private void setData(Document doc) {
         Element utuElement = (Element) doc.getElementsByTagName("utu").item(0);
         Element events = (Element) utuElement.getElementsByTagName("events")
                 .item(0);
@@ -126,74 +146,63 @@ public class DataLoader {
         Element exams = (Element) utuElement.getElementsByTagName("exams")
                 .item(0);
 
-        DataLoader.events.load(events);
-        DataLoader.exams.load(exams);
-        DataLoader.tasks.load(tasks);
+        this.events.clearAndLoad(events);
+        this.exams.clearAndLoad(exams);
+        this.tasks.clearAndLoad(tasks);
 
-        Collections.reverse(DataLoader.events.events);
-        Collections.reverse(DataLoader.exams.exams);
-        Collections.reverse(DataLoader.tasks.tasks);
+        Collections.reverse(this.events.events);
+        Collections.reverse(this.exams.exams);
+        Collections.reverse(this.tasks.tasks);
     }
+    /*
+            Resources resources = context.getResources();
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage(resources.getString(R.string.unable_to_connect_to_the_internet));
+            builder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    DataLoader.getData(context);
+                }
+            });
+            builder.setNegativeButton(resources.getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
 
-    public static boolean isOnline(Context context) {
-        ConnectivityManager cm =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
-            return true;
+                }
+            });
+            final File file = context.getFileStreamPath(DataLoader.BACKUP_FILE_NAME);
+            if (file.exists())
+                builder.setNeutralButton(resources.getString(R.string.load_latest_downloaded_data), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        loadResult = LoadResult.Success;
+                        try {
+                            BufferedReader br = new BufferedReader(new FileReader(file));
+                            StringBuilder sb = new StringBuilder();
+                            String line = br.readLine();
+
+                            while (line != null) {
+                                sb.append(line);
+                                sb.append("\n");
+                                line = br.readLine();
+                            }
+                            String content = sb.toString();
+                            br.close();
+                            XMLParser parser = new XMLParser();
+                            setData(parser.execute(content).get());
+                            loadResult = LoadResult.Success;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            builder.show();
+
+            return loadResult;
         }
-        return false;
-    }
-}
-class HttpLoader extends AsyncTask<String, Void, OutputStream> {
-    @Override
-    protected OutputStream doInBackground(String... params) {
-        HttpClient client = new DefaultHttpClient();
-        try {
-            //HttpPost httpPost = new HttpPost(params[0]);
-            HttpResponse response = client.execute(new HttpGet(params[0]));
-            StatusLine status = response.getStatusLine();
-            if (status.getStatusCode() == HttpStatus.SC_OK) {
-                OutputStream byteStream = new ByteArrayOutputStream();
-                response.getEntity().writeTo(byteStream);
-                return byteStream;
-            }
-        } catch (ClientProtocolException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return null;
-    }
-}
-
-class XMLParser extends AsyncTask<String, Void, Document> {
-    @Override
-    protected Document doInBackground(String... strings) {
-        Document doc = null;
-        DocumentBuilderFactory dbf;
-        dbf = DocumentBuilderFactory.newInstance();
-        try {
-
-            DocumentBuilder db = dbf.newDocumentBuilder();
-
-            InputSource is = new InputSource();
-            is.setCharacterStream(new StringReader(strings[0]));
-            doc = db.parse(is);
-
-        } catch (ParserConfigurationException e) {
-            Log.e("XML Parser", e.getMessage());
-            return null;
-        } catch (SAXException e) {
-            Log.e("XML Parser", e.getMessage());
-            return null;
-        } catch (IOException e) {
-            Log.e("XML Parser", e.getMessage());
-            return null;
-        }
-        // return DOM
-        return doc;
-    }
+    }*/
 }

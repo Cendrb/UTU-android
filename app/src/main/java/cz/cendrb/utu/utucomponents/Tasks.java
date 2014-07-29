@@ -25,7 +25,7 @@ public class Tasks {
 
     }
 
-    public void load(Element inTasks) {
+    public void clearAndLoad(Element inTasks) {
         this.tasks.clear();
         for (int counter = inTasks.getChildNodes().getLength() - 1; counter > 0; counter--) {
             Node node = inTasks.getChildNodes().item(counter);

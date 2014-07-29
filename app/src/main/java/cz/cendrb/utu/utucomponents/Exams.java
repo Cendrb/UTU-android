@@ -24,7 +24,7 @@ public class Exams {
         exams = new ArrayList<Exam>();
     }
 
-    public void load(Element inExams) {
+    public void clearAndLoad(Element inExams) {
         this.exams.clear();
         for (int counter = inExams.getChildNodes().getLength() - 1; counter > 0; counter--) {
             Node node = inExams.getChildNodes().item(counter);

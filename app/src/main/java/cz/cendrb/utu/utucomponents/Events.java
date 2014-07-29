@@ -24,7 +24,7 @@ public class Events {
         events = new ArrayList<Event>();
     }
 
-    public void load(Element inEvents) {
+    public void clearAndLoad(Element inEvents) {
         this.events.clear();
         for (int counter = inEvents.getChildNodes().getLength() - 1; counter > 0; counter--) {
             Node node = inEvents.getChildNodes().item(counter);
