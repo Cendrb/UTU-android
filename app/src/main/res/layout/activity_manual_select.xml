@@ -12,75 +12,81 @@
         android:id="@+id/manualBeginningLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
         android:text="@string/beginning_of_choice"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
-    <DatePicker
-        android:id="@+id/manualDateBeginning"
-        style="@style/AppTheme"
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Date"
+        android:id="@+id/manualBeginningButton"
         android:layout_below="@+id/manualBeginningLabel"
-        android:layout_centerHorizontal="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:onClick="onBeginningButtonClick"
         android:layout_marginTop="5dp"
-        android:calendarViewShown="false"
-        android:scaleX="0.6"
-        android:scaleY="0.6"
-        android:spinnersShown="true" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <TextView
-        android:id="@+id/manualEndLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/manualDateBeginning"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/end_of_choice"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:id="@+id/manualEndLabel"
+        android:layout_below="@+id/manualBeginningButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="10dp" />
 
-    <DatePicker
-        android:id="@+id/manualDateEnd"
-        style="@style/AppTheme"
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Date"
+        android:id="@+id/manualEndButton"
+        android:onClick="onDateButtonClick"
         android:layout_below="@+id/manualEndLabel"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="5dp"
-        android:calendarViewShown="false"
-        android:spinnersShown="true" />
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/manualBeginningButton"
+        android:layout_alignEnd="@+id/manualBeginningButton"
+        android:layout_marginTop="5dp" />
 
     <TextView
-        android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/manualDateEnd"
-        android:layout_marginTop="10dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/group"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-    <RadioGroup
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:id="@+id/manualGroupLabel"
+        android:layout_below="@+id/manualEndButton"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView3">
+        android:layout_marginTop="10dp" />
 
-        <RadioButton
-            android:id="@+id/manualFirstGroupRadio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/first" />
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/manualGroupSpinner"
+        android:layout_below="@+id/manualGroupLabel"
+        android:layout_alignLeft="@+id/manualGroupLabel"
+        android:layout_alignStart="@+id/manualGroupLabel"
+        android:layout_marginTop="5dp" />
 
-        <RadioButton
-            android:id="@+id/manualSecondGroupRadio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/second" />
-
-    </RadioGroup>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/view_data"
+        android:id="@+id/manualSendButton"
+        android:layout_toEndOf="@+id/manualGroupLabel"
+        android:layout_below="@+id/manualGroupSpinner"
+        android:layout_marginTop="10dp"
+        android:layout_alignLeft="@+id/manualGroupSpinner"
+        android:layout_alignStart="@+id/manualGroupSpinner"
+        android:layout_alignRight="@+id/manualGroupSpinner"
+        android:layout_alignEnd="@+id/manualGroupSpinner"
+        android:onClick="onViewButtonClick" />
 
 </RelativeLayout>

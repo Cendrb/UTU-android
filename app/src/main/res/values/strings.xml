@@ -28,5 +28,6 @@
     <string name="second">druhá</string>
     <string name="successfully_loaded_from_backup">Internetové připojení není dostupné. Byla použita poslední stažená data.</string>
     <string name="failed_to_load_data">Data nemohla být nahrána. (Internetové připojení je nedostupné a žádná záloha nebyla nalezena)</string>
+    <string name="view_data">Zobrazit vybraná data</string>
 
 </resources>

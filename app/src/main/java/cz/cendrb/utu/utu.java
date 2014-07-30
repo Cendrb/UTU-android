@@ -7,6 +7,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -154,6 +155,11 @@ public class utu extends Activity implements ActionBar.TabListener {
             item.setEnabled(true);
 
             return true;
+        }
+        if(id == R.id.action_manual_select)
+        {
+            Intent intent = new Intent(this, ManualSelect.class);
+            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }
