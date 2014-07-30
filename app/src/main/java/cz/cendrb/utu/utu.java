@@ -2,21 +2,19 @@ package cz.cendrb.utu;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
-import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,6 +26,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
@@ -38,6 +37,7 @@ import cz.cendrb.utu.utucomponents.Tasks;
 
 public class utu extends Activity implements ActionBar.TabListener {
 
+    public static DataLoader dataLoader;
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -47,24 +47,19 @@ public class utu extends Activity implements ActionBar.TabListener {
      * {@link android.support.v13.app.FragmentStatePagerAdapter}.
      */
     SectionsPagerAdapter mSectionsPagerAdapter;
-    Menu menu;
 
     //Handler handler = new Handler();
+    Menu menu;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
 
-    public static DataLoader dataLoader;
-
     public static boolean isOnline(Context context) {
         ConnectivityManager cm =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
-            return true;
-        }
-        return false;
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
 
@@ -92,7 +87,11 @@ public class utu extends Activity implements ActionBar.TabListener {
 
         // Set up the action bar.
         final ActionBar actionBar = getActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        if (actionBar != null) {
+            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        } else {
+            Log.e("UTU", "Failed to get actionbar");
+        }
 
         // When swiping between different sections, select the corresponding
         // tab. We can also use ActionBar.Tab#select() to do this if we have
@@ -287,7 +286,7 @@ public class utu extends Activity implements ActionBar.TabListener {
         @Override
         protected void onPreExecute() {
             dialog = new ProgressDialog(context);
-            dialog.setMessage(context.getResources().getString(R.string.loading_data_from_web));
+            dialog.setMessage(context.getResources().getString(R.string.loading_data));
             dialog.setTitle(context.getResources().getString(R.string.wait));
             dialog.setIndeterminate(true);
             dialog.show();
@@ -303,10 +302,9 @@ public class utu extends Activity implements ActionBar.TabListener {
             switch (loadResult)
             {
                 case WebSuccess:
-                    context.setTitle(context.getString(R.string.app_name) + " (aktuální data)");
+                    context.setTitle(context.getString(R.string.app_name) + " (" + sdf.format(new Date()) + ")");
                     break;
                 case BackupSuccess:
-                    // TODO Add "byla použita data ze dne 4.1.2014"
                     context.setTitle(context.getString(R.string.app_name) + " (" + sdf.format(backupFile.lastModified()) + ")");
                     Toast.makeText(context, R.string.successfully_loaded_from_backup, Toast.LENGTH_LONG).show();
                     break;

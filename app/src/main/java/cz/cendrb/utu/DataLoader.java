@@ -1,12 +1,5 @@
 package cz.cendrb.utu;
 
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.res.Resources;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
@@ -29,7 +22,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.util.Collections;
-import java.util.concurrent.ExecutionException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -77,8 +69,7 @@ public class DataLoader {
         return false;
     }
 
-    public boolean loadFromBackup(File file)
-    {
+    public boolean loadFromBackup(File file) {
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             StringBuilder sb = new StringBuilder();
@@ -154,55 +145,4 @@ public class DataLoader {
         Collections.reverse(this.exams.exams);
         Collections.reverse(this.tasks.tasks);
     }
-    /*
-            Resources resources = context.getResources();
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setMessage(resources.getString(R.string.unable_to_connect_to_the_internet));
-            builder.setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    DataLoader.getData(context);
-                }
-            });
-            builder.setNegativeButton(resources.getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-
-                }
-            });
-            final File file = context.getFileStreamPath(DataLoader.BACKUP_FILE_NAME);
-            if (file.exists())
-                builder.setNeutralButton(resources.getString(R.string.load_latest_downloaded_data), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        loadResult = LoadResult.Success;
-                        try {
-                            BufferedReader br = new BufferedReader(new FileReader(file));
-                            StringBuilder sb = new StringBuilder();
-                            String line = br.readLine();
-
-                            while (line != null) {
-                                sb.append(line);
-                                sb.append("\n");
-                                line = br.readLine();
-                            }
-                            String content = sb.toString();
-                            br.close();
-                            XMLParser parser = new XMLParser();
-                            setData(parser.execute(content).get());
-                            loadResult = LoadResult.Success;
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            builder.show();
-
-            return loadResult;
-        }
-    }*/
 }
