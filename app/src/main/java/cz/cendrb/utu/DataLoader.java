@@ -1,12 +1,19 @@
 package cz.cendrb.utu;
 
+import android.os.Debug;
+import android.util.Log;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -21,7 +28,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -33,21 +43,70 @@ import cz.cendrb.utu.utucomponents.Tasks;
 
 public class DataLoader {
 
+    public static final String EMAIL = "email";
+    public static final String PASSWORD = "password";
+
     public static final String BACKUP_FILE_NAME = "utudata";
     public Events events;
     public Exams exams;
     public Tasks tasks;
 
+    HttpClient client;
+/*
+    Date from;
+    Date to;
+    int group;
+
+        public static final String FROM = "from";
+    public static final String TO = "to";
+    public static final String GROUP = "group";
+
+    HttpPost httpPost = new HttpPost("http://utu.herokuapp.com/details.xml");
+                List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+                urlParameters.add(new BasicNameValuePair(FROM, from.toString()));
+                urlParameters.add(new BasicNameValuePair(TO, to.toString()));
+                urlParameters.add(new BasicNameValuePair(GROUP, String.valueOf(group)));
+
+                httpPost.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+                response = client.execute(httpPost);
+
+    */
+
     public DataLoader() {
         events = new Events();
         exams = new Exams();
         tasks = new Tasks();
+        client = new DefaultHttpClient();
+    }
+
+    public DataLoader(String email, String password) {
+        this();
+        try {
+            HttpPost loginPost = new HttpPost();
+
+            List<NameValuePair> loginData = new ArrayList<NameValuePair>();
+            loginData.add(new BasicNameValuePair("email", email));
+            loginData.add(new BasicNameValuePair("password", password));
+
+            loginPost.setEntity(new UrlEncodedFormEntity(loginData));
+
+            HttpResponse response = client.execute(loginPost);
+            Log.d(utu.NAME, response.getStatusLine().toString());
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public boolean loadFromNetAndBackup(File backupFile) {
         try {
-            HttpClient client = new DefaultHttpClient();
-            HttpResponse response = client.execute(new HttpGet("http://utu.herokuapp.com/details.xml"));
+            HttpResponse response;
+            response = client.execute(new HttpGet("http://utu.herokuapp.com/details.xml"));
             StatusLine status = response.getStatusLine();
             if (status.getStatusCode() == HttpStatus.SC_OK) {
                 OutputStream byteStream = new ByteArrayOutputStream();

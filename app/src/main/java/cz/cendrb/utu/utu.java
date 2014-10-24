@@ -26,6 +26,7 @@ import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import java.io.File;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -38,6 +39,7 @@ import cz.cendrb.utu.utucomponents.Tasks;
 
 public class utu extends Activity implements ActionBar.TabListener {
 
+    public static final String NAME = "UTU";
     public static DataLoader dataLoader;
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -68,7 +70,18 @@ public class utu extends Activity implements ActionBar.TabListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        dataLoader = new DataLoader();
+        SimpleDateFormat parser = new SimpleDateFormat("dd. MM. yyyy");
+
+        Bundle bundle = getIntent().getExtras();
+
+        try {
+            String email = bundle.getString(DataLoader.EMAIL);
+            String password = bundle.getString(DataLoader.PASSWORD);
+            dataLoader = new DataLoader(email, password);
+        } catch (Exception e) {
+            e.printStackTrace();
+            dataLoader = new DataLoader();
+        }
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
@@ -91,7 +104,7 @@ public class utu extends Activity implements ActionBar.TabListener {
         if (actionBar != null) {
             actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
         } else {
-            Log.e("UTU", "Failed to get actionbar");
+            Log.e(utu.NAME, "Failed to get actionbar");
         }
 
         // When swiping between different sections, select the corresponding
@@ -155,11 +168,6 @@ public class utu extends Activity implements ActionBar.TabListener {
             item.setEnabled(true);
 
             return true;
-        }
-        if(id == R.id.action_manual_select)
-        {
-            Intent intent = new Intent(this, ManualSelect.class);
-            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -281,10 +289,10 @@ public class utu extends Activity implements ActionBar.TabListener {
         @Override
         protected LoadResult doInBackground(Void... voids) {
             backupFile = context.getFileStreamPath(DataLoader.BACKUP_FILE_NAME);
-            if(isOnline(context))
-                if(utu.dataLoader.loadFromNetAndBackup(backupFile))
+            if (isOnline(context))
+                if (utu.dataLoader.loadFromNetAndBackup(backupFile))
                     return LoadResult.WebSuccess;
-            if(backupFile.exists() && utu.dataLoader.loadFromBackup(backupFile))
+            if (backupFile.exists() && utu.dataLoader.loadFromBackup(backupFile))
                 return LoadResult.BackupSuccess;
             return LoadResult.Failure;
         }
@@ -302,11 +310,10 @@ public class utu extends Activity implements ActionBar.TabListener {
         @Override
         protected void onPostExecute(LoadResult loadResult) {
             dialog.hide();
-            if(postAction != null)
+            if (postAction != null)
                 postAction.run();
             SimpleDateFormat sdf = new SimpleDateFormat("dd. MM. yyyy HH:mm");
-            switch (loadResult)
-            {
+            switch (loadResult) {
                 case WebSuccess:
                     context.setTitle(context.getString(R.string.app_name) + " (" + sdf.format(new Date()) + ")");
                     break;
