@@ -15,7 +15,7 @@
     <string name="action_refresh">Obnovit</string>
     <string name="action_manual_select">Ruční výběr</string>
     <string name="title_activity_manual_select">Ruční výběr</string>
-    <string name="wait">Čekejte prosím...</string>
+    <string name="wait">Čekejte prosím</string>
     <string name="loading_data">Probíhá získávání dat</string>
     <string name="unable_to_connect_to_the_internet">Nelze se připojit k internetu</string>
     <string name="try_again">Zkusit znovu</string>
@@ -29,11 +29,17 @@
     <string name="failed_to_load_data">Data nemohla být nahrána. (Internetové připojení je nedostupné a žádná záloha nebyla nalezena)</string>
     <string name="view_data">Zobrazit vybraná data</string>
     <string name="login_text">Přihlášení</string>
-    <string name="email">Email</string>
+    <string name="username_email">Přihlašovací jméno (email)</string>
     <string name="password">Heslo</string>
     <string name="login_button">Přihlásit se</string>
     <string name="permanent_login">Trvalé přihlášení</string>
     <string name="or">nebo</string>
     <string name="view_all">Zobrazit vše bez ohledu na uživatele</string>
+    <string name="wrong_username_or_password">Špatné uživatelské jméno nebo heslo</string>
+    <string name="yes">Ano</string>
+    <string name="no">Ne</string>
+    <string name="logging_in">Probíhá přihlašování</string>
+    <string name="auto_login">Automatické přihlášení</string>
+    <string name="logging_off">Probíhá odhlašování</string>
 
 </resources>

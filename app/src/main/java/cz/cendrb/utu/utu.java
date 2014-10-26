@@ -5,13 +5,10 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -26,11 +23,9 @@ import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import java.io.File;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.ExecutionException;
 
 import cz.cendrb.utu.utucomponents.Events;
 import cz.cendrb.utu.utucomponents.Exams;
@@ -39,8 +34,13 @@ import cz.cendrb.utu.utucomponents.Tasks;
 
 public class utu extends Activity implements ActionBar.TabListener {
 
-    public static final String NAME = "UTU";
-    public static DataLoader dataLoader;
+    static final String NAME = "UTU";
+
+    public static String getPrefix() {
+        return NAME;
+    }
+
+    public static DataLoader dataLoader = new DataLoader();
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -70,69 +70,64 @@ public class utu extends Activity implements ActionBar.TabListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        SimpleDateFormat parser = new SimpleDateFormat("dd. MM. yyyy");
-
-        Bundle bundle = getIntent().getExtras();
-
-        try {
-            String email = bundle.getString(DataLoader.EMAIL);
-            String password = bundle.getString(DataLoader.PASSWORD);
-            dataLoader = new DataLoader(email, password);
-        } catch (Exception e) {
-            e.printStackTrace();
-            dataLoader = new DataLoader();
-        }
-
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         setContentView(R.layout.activity_utu);
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
 
-        try {
-            new Refresher(this).execute().get();
-            mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
-            mViewPager.setAdapter(mSectionsPagerAdapter);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
+        final utu utuActivity = this;
 
-        // Set up the action bar.
-        final ActionBar actionBar = getActionBar();
-        if (actionBar != null) {
-            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-        } else {
-            Log.e(utu.NAME, "Failed to get actionbar");
-        }
-
-        // When swiping between different sections, select the corresponding
-        // tab. We can also use ActionBar.Tab#select() to do this if we have
-        // a reference to the Tab.
-        mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+        new Refresher(this, getResources().getString(R.string.wait), getResources().getString(R.string.loading_data), new Runnable() {
             @Override
-            public void onPageSelected(int position) {
-                actionBar.setSelectedNavigationItem(position);
-            }
-        });
+            public void run() {
+                mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
+                mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        // For each of the sections in the app, add a tab to the action bar.
-        for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
-            // Create a tab with text corresponding to the page title defined by
-            // the adapter. Also specify this Activity object, which implements
-            // the TabListener interface, as the callback (listener) for when
-            // this tab is selected.
-            actionBar.addTab(
-                    actionBar.newTab()
-                            .setText(mSectionsPagerAdapter.getPageTitle(i))
-                            .setTabListener(this)
-            );
-        }
+                // Set up the action bar.
+                final ActionBar actionBar = getActionBar();
+                if (actionBar != null) {
+                    actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+                } else {
+                    Log.e(utu.NAME, "Failed to get actionbar");
+                }
+
+                // When swiping between different sections, select the corresponding
+                // tab. We can also use ActionBar.Tab#select() to do this if we have
+                // a reference to the Tab.
+                mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        actionBar.setSelectedNavigationItem(position);
+                    }
+                });
+
+                // For each of the sections in the app, add a tab to the action bar.
+                for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
+                    // Create a tab with text corresponding to the page title defined by
+                    // the adapter. Also specify this Activity object, which implements
+                    // the TabListener interface, as the callback (listener) for when
+                    // this tab is selected.
+                    actionBar.addTab(
+                            actionBar.newTab()
+                                    .setText(mSectionsPagerAdapter.getPageTitle(i))
+                                    .setTabListener(utuActivity)
+                    );
+                }
+            }
+        }).execute();
+    }
+
+    @Override
+    protected void onPause() {
+        if (dataLoader.isLoggedIn())
+            new LogOffWithProgressDialog(this, getResources().getString(R.string.wait), getResources().getString(R.string.logging_off), null).execute();
+
+        super.onPause();
     }
 
     private void refresh(final int pageIndex) {
-        Refresher refresher = new Refresher(this, new Runnable() {
+        Refresher refresher = new Refresher(this, getResources().getString(R.string.wait), getResources().getString(R.string.loading_data), new Runnable() {
             @Override
             public void run() {
                 mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
@@ -271,25 +266,29 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
     }
 
-    public class Refresher extends AsyncTask<Void, Void, LoadResult> {
-        Activity context;
-        ProgressDialog dialog;
-        Runnable postAction;
-        File backupFile;
-
-        public Refresher(Activity context) {
-            this.context = context;
+    public class LogOffWithProgressDialog extends TaskWithProgressDialog<Void> {
+        public LogOffWithProgressDialog(Activity activity, String titleMessage, String message, Runnable postAction) {
+            super(activity, titleMessage, message, postAction);
         }
 
-        public Refresher(Activity context, Runnable postAction) {
-            this.context = context;
-            this.postAction = postAction;
+        @Override
+        protected Void doInBackground(Void... voids) {
+            utu.dataLoader.logout();
+            return null;
+        }
+    }
+
+    public class Refresher extends TaskWithProgressDialog<LoadResult> {
+        File backupFile;
+
+        public Refresher(Activity activity, String titleMessage, String message, Runnable postAction) {
+            super(activity, titleMessage, message, postAction);
         }
 
         @Override
         protected LoadResult doInBackground(Void... voids) {
-            backupFile = context.getFileStreamPath(DataLoader.BACKUP_FILE_NAME);
-            if (isOnline(context))
+            backupFile = activity.getFileStreamPath(DataLoader.BACKUP_FILE_NAME);
+            if (isOnline(activity))
                 if (utu.dataLoader.loadFromNetAndBackup(backupFile))
                     return LoadResult.WebSuccess;
             if (backupFile.exists() && utu.dataLoader.loadFromBackup(backupFile))
@@ -298,31 +297,18 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
 
         @Override
-        protected void onPreExecute() {
-            dialog = new ProgressDialog(context);
-            dialog.setMessage(context.getResources().getString(R.string.loading_data));
-            dialog.setTitle(context.getResources().getString(R.string.wait));
-            dialog.setIndeterminate(true);
-            dialog.show();
-            super.onPreExecute();
-        }
-
-        @Override
         protected void onPostExecute(LoadResult loadResult) {
-            dialog.hide();
-            if (postAction != null)
-                postAction.run();
             SimpleDateFormat sdf = new SimpleDateFormat("dd. MM. yyyy HH:mm");
             switch (loadResult) {
                 case WebSuccess:
-                    context.setTitle(context.getString(R.string.app_name) + " (" + sdf.format(new Date()) + ")");
+                    activity.setTitle(activity.getString(R.string.app_name) + " (" + sdf.format(new Date()) + ")");
                     break;
                 case BackupSuccess:
-                    context.setTitle(context.getString(R.string.app_name) + " (" + sdf.format(backupFile.lastModified()) + ")");
-                    Toast.makeText(context, R.string.successfully_loaded_from_backup, Toast.LENGTH_LONG).show();
+                    activity.setTitle(activity.getString(R.string.app_name) + " (" + sdf.format(backupFile.lastModified()) + ")");
+                    Toast.makeText(activity, R.string.successfully_loaded_from_backup, Toast.LENGTH_LONG).show();
                     break;
                 case Failure:
-                    Toast.makeText(context, R.string.failed_to_load_data, Toast.LENGTH_LONG).show();
+                    Toast.makeText(activity, R.string.failed_to_load_data, Toast.LENGTH_LONG).show();
                     break;
             }
             super.onPostExecute(loadResult);

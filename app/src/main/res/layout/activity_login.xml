@@ -22,7 +22,7 @@
         android:inputType="textEmailAddress"
         android:ems="10"
         android:id="@+id/loginEmail"
-        android:hint="@string/email"
+        android:hint="@string/username_email"
         android:layout_marginTop="10dp" />
 
     <EditText
@@ -42,6 +42,14 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="5dp"
         android:checked="false" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/auto_login"
+        android:id="@+id/loginAutoLogin"
+        android:checked="false"
+        android:enabled="false" />
 
     <Button
         android:layout_width="match_parent"

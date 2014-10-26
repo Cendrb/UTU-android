@@ -1,6 +1,5 @@
 package cz.cendrb.utu;
 
-import android.os.Debug;
 import android.util.Log;
 
 import org.apache.http.HttpResponse;
@@ -42,14 +41,12 @@ import cz.cendrb.utu.utucomponents.Exams;
 import cz.cendrb.utu.utucomponents.Tasks;
 
 public class DataLoader {
-
-    public static final String EMAIL = "email";
-    public static final String PASSWORD = "password";
-
     public static final String BACKUP_FILE_NAME = "utudata";
     public Events events;
     public Exams exams;
     public Tasks tasks;
+
+    private boolean loggedIn;
 
     HttpClient client;
 /*
@@ -80,10 +77,16 @@ public class DataLoader {
         client = new DefaultHttpClient();
     }
 
-    public DataLoader(String email, String password) {
-        this();
+    public boolean isLoggedIn() {
+        return loggedIn;
+    }
+
+    public boolean login(String email, String password) {
         try {
-            HttpPost loginPost = new HttpPost();
+            Log.d(utu.getPrefix(), email);
+            Log.d(utu.getPrefix(), password);
+
+            HttpPost loginPost = new HttpPost("http://utu.herokuapp.com/login.whoa");
 
             List<NameValuePair> loginData = new ArrayList<NameValuePair>();
             loginData.add(new BasicNameValuePair("email", email));
@@ -92,12 +95,27 @@ public class DataLoader {
             loginPost.setEntity(new UrlEncodedFormEntity(loginData));
 
             HttpResponse response = client.execute(loginPost);
-            Log.d(utu.NAME, response.getStatusLine().toString());
+            Log.d(utu.getPrefix(), response.getStatusLine().toString());
+            if (response.getStatusLine().getStatusCode() == 200)
+                loggedIn = true;
+            else
+                loggedIn = false;
+            return loggedIn;
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (ClientProtocolException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void logout() {
+        try {
+            client.execute(new HttpGet("http://utu.herokuapp.com/logout"));
+            loggedIn = false;
         } catch (IOException e) {
             e.printStackTrace();
         }

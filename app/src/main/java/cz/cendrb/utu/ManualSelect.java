@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
@@ -18,13 +17,6 @@ import android.widget.DatePicker;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.HttpParams;
-
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -76,9 +68,9 @@ public class ManualSelect extends Activity {
     public void onViewButtonClick(View v) {
         Toast.makeText(this, group + " : " + mManualBeginningButton.getText() + " - " + mManualEndButton.getText(), Toast.LENGTH_LONG).show();
         Intent intent = new Intent(this, utu.class);
-        intent.putExtra(DataLoader.FROM, mManualBeginningButton.getText());
-        intent.putExtra(DataLoader.TO, mManualEndButton.getText());
-        intent.putExtra(DataLoader.GROUP, group);
+        //intent.putExtra(DataLoader.FROM, mManualBeginningButton.getText());
+        //intent.putExtra(DataLoader.TO, mManualEndButton.getText());
+        //intent.putExtra(DataLoader.GROUP, group);
         startActivity(intent);
     }
 
