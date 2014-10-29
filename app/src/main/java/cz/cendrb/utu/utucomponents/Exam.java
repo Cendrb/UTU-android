@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
+import cz.cendrb.utu.utu;
+
 public class Exam {
 
     static final String TITLE = "title";
@@ -20,7 +22,7 @@ public class Exam {
 
     String title;
     String description;
-    Subject subject;
+    int subject;
     Date date;
     int group;
 
@@ -30,7 +32,7 @@ public class Exam {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         title = data.getAttribute(TITLE);
         description = data.getAttribute(DESCRIPTION);
-        subject = Subject.valueOf(data.getAttribute(SUBJECT));
+        subject = Integer.parseInt(data.getAttribute(SUBJECT));
         try {
             date = df.parse(data.getAttribute(DATE));
         } catch (ParseException e) {
@@ -45,7 +47,7 @@ public class Exam {
         HashMap<String, String> record = new HashMap<String, String>();
         record.put(TITLE, title);
         record.put(DESCRIPTION, description);
-        record.put(SUBJECT, subject.name());
+        record.put(SUBJECT, utu.utuClient.subjects.get(subject));
         record.put(DATE, dateFormat.format(date));
         String stringGroup = "";
         switch (group) {

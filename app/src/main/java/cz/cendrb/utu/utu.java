@@ -40,7 +40,7 @@ public class utu extends Activity implements ActionBar.TabListener {
         return NAME;
     }
 
-    public static DataLoader dataLoader = new DataLoader();
+    public static UtuClient utuClient = new UtuClient();
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -120,7 +120,7 @@ public class utu extends Activity implements ActionBar.TabListener {
 
     @Override
     protected void onPause() {
-        if (dataLoader.isLoggedIn())
+        if (utuClient.isLoggedIn())
             new LogOffWithProgressDialog(this, getResources().getString(R.string.wait), getResources().getString(R.string.logging_off), null).execute();
 
         super.onPause();
@@ -215,13 +215,13 @@ public class utu extends Activity implements ActionBar.TabListener {
 
             switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
                 case 1:
-                    list.setAdapter(new SimpleAdapter(container.getContext(), utu.dataLoader.tasks.getListForAdapter(), R.layout.task_item, Tasks.from, Tasks.to));
+                    list.setAdapter(new SimpleAdapter(container.getContext(), utu.utuClient.tasks.getListForAdapter(), R.layout.task_item, Tasks.from, Tasks.to));
                     break;
                 case 2:
-                    list.setAdapter(new SimpleAdapter(container.getContext(), utu.dataLoader.events.getListForAdapter(), R.layout.event_item, Events.from, Events.to));
+                    list.setAdapter(new SimpleAdapter(container.getContext(), utu.utuClient.events.getListForAdapter(), R.layout.event_item, Events.from, Events.to));
                     break;
                 case 3:
-                    list.setAdapter(new SimpleAdapter(container.getContext(), utu.dataLoader.exams.getListForAdapter(), R.layout.exam_item, Exams.from, Exams.to));
+                    list.setAdapter(new SimpleAdapter(container.getContext(), utu.utuClient.exams.getListForAdapter(), R.layout.exam_item, Exams.from, Exams.to));
                     break;
             }
             return rootView;
@@ -273,13 +273,12 @@ public class utu extends Activity implements ActionBar.TabListener {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            utu.dataLoader.logout();
+            utu.utuClient.logout();
             return null;
         }
     }
 
     public class Refresher extends TaskWithProgressDialog<LoadResult> {
-        File backupFile;
 
         public Refresher(Activity activity, String titleMessage, String message, Runnable postAction) {
             super(activity, titleMessage, message, postAction);
@@ -287,11 +286,10 @@ public class utu extends Activity implements ActionBar.TabListener {
 
         @Override
         protected LoadResult doInBackground(Void... voids) {
-            backupFile = activity.getFileStreamPath(DataLoader.BACKUP_FILE_NAME);
             if (isOnline(activity))
-                if (utu.dataLoader.loadFromNetAndBackup(backupFile))
+                if (utu.utuClient.loadFromNetAndBackup(activity))
                     return LoadResult.WebSuccess;
-            if (backupFile.exists() && utu.dataLoader.loadFromBackup(backupFile))
+            if (utu.utuClient.loadFromBackup(activity))
                 return LoadResult.BackupSuccess;
             return LoadResult.Failure;
         }
@@ -304,7 +302,7 @@ public class utu extends Activity implements ActionBar.TabListener {
                     activity.setTitle(activity.getString(R.string.app_name) + " (" + sdf.format(new Date()) + ")");
                     break;
                 case BackupSuccess:
-                    activity.setTitle(activity.getString(R.string.app_name) + " (" + sdf.format(backupFile.lastModified()) + ")");
+                    activity.setTitle(activity.getString(R.string.app_name) + " (" + sdf.format(utu.utuClient.getLastModifiedFromBackupData(activity)) + ")");
                     Toast.makeText(activity, R.string.successfully_loaded_from_backup, Toast.LENGTH_LONG).show();
                     break;
                 case Failure:

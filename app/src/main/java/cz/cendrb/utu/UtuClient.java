@@ -1,6 +1,8 @@
 package cz.cendrb.utu;
 
+import android.app.Activity;
 import android.util.Log;
+import android.util.SparseArray;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -15,6 +17,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -40,41 +43,30 @@ import cz.cendrb.utu.utucomponents.Events;
 import cz.cendrb.utu.utucomponents.Exams;
 import cz.cendrb.utu.utucomponents.Tasks;
 
-public class DataLoader {
-    public static final String BACKUP_FILE_NAME = "utudata";
+public class UtuClient {
+    static final String BACKUP_FILE_NAME = "utudata";
+    static final String BACKUP_SUBJECTS_FILE_NAME = "subjects";
+
     public Events events;
     public Exams exams;
     public Tasks tasks;
 
+    public SparseArray<String> subjects;
+
     private boolean loggedIn;
 
     HttpClient client;
-/*
-    Date from;
-    Date to;
-    int group;
 
-        public static final String FROM = "from";
-    public static final String TO = "to";
-    public static final String GROUP = "group";
-
-    HttpPost httpPost = new HttpPost("http://utu.herokuapp.com/details.xml");
-                List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
-                urlParameters.add(new BasicNameValuePair(FROM, from.toString()));
-                urlParameters.add(new BasicNameValuePair(TO, to.toString()));
-                urlParameters.add(new BasicNameValuePair(GROUP, String.valueOf(group)));
-
-                httpPost.setEntity(new UrlEncodedFormEntity(urlParameters));
-
-                response = client.execute(httpPost);
-
-    */
-
-    public DataLoader() {
+    public UtuClient() {
         events = new Events();
         exams = new Exams();
         tasks = new Tasks();
         client = new DefaultHttpClient();
+    }
+
+    public boolean isAdministrator()
+    {
+        getStringFrom("http://utu.herokuapp.com/login.whoa")
     }
 
     public boolean isLoggedIn() {
@@ -83,9 +75,6 @@ public class DataLoader {
 
     public boolean login(String email, String password) {
         try {
-            Log.d(utu.getPrefix(), email);
-            Log.d(utu.getPrefix(), password);
-
             HttpPost loginPost = new HttpPost("http://utu.herokuapp.com/login.whoa");
 
             List<NameValuePair> loginData = new ArrayList<NameValuePair>();
@@ -121,32 +110,70 @@ public class DataLoader {
         }
     }
 
-    public boolean loadFromNetAndBackup(File backupFile) {
+    public boolean loadFromNetAndBackup(Activity activity) {
+        String result;
+        boolean subSuccess = false;
+        boolean utuSuccess = false;
+
+        File subjectsFile = activity.getFileStreamPath(BACKUP_SUBJECTS_FILE_NAME);
+        result = getStringFrom("http://utu.herokuapp.com/subjects.xml");
+        if (result != null) {
+            if (!setSubjectsData(parseXML(result)))
+                return false;
+            backupData(result, subjectsFile);
+            subSuccess = true;
+        }
+
+        File utuFile = activity.getFileStreamPath(BACKUP_FILE_NAME);
+        result = getStringFrom("http://utu.herokuapp.com/details.xml");
+        if (result != null) {
+            if (!setUtuData(parseXML(result)))
+                return false;
+            backupData(result, utuFile);
+            utuSuccess = true;
+        }
+
+        return subSuccess && utuSuccess;
+    }
+
+    public boolean loadFromBackup(Activity activity) {
+        File utuFile = activity.getFileStreamPath(BACKUP_FILE_NAME);
+        File subjectsFile = activity.getFileStreamPath(BACKUP_SUBJECTS_FILE_NAME);
+
+        if (!utuFile.exists() || !subjectsFile.exists())
+            return false;
+
+        if (!setSubjectsData(parseXML(loadData(subjectsFile))))
+            return false;
+
+        if (!setUtuData(parseXML(loadData(utuFile))))
+            return false;
+
+        return true;
+    }
+
+    public long getLastModifiedFromBackupData(Activity activity) {
+        return activity.getFileStreamPath(BACKUP_FILE_NAME).lastModified();
+    }
+
+    private String getStringFrom(String url) {
+        HttpResponse response = null;
         try {
-            HttpResponse response;
-            response = client.execute(new HttpGet("http://utu.herokuapp.com/details.xml"));
+            response = client.execute(new HttpGet(url));
             StatusLine status = response.getStatusLine();
             if (status.getStatusCode() == HttpStatus.SC_OK) {
                 OutputStream byteStream = new ByteArrayOutputStream();
                 response.getEntity().writeTo(byteStream);
-                String rawXml = byteStream.toString();
-                Document doc = parseXML(rawXml);
-                if (doc == null)
-                    return false;
-                setData(doc);
-                backupData(rawXml, backupFile);
-                return true;
+                return byteStream.toString();
             } else
-                return false;
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
+                return null;
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
-        return false;
     }
 
-    public boolean loadFromBackup(File file) {
+    private String loadData(File file) {
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             StringBuilder sb = new StringBuilder();
@@ -157,14 +184,12 @@ public class DataLoader {
                 sb.append("\n");
                 line = br.readLine();
             }
-            String content = sb.toString();
             br.close();
-            setData(parseXML(content));
-            return true;
+            return sb.toString();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return false;
+        return "";
     }
 
     private void backupData(String rawXml, File file) {
@@ -205,21 +230,50 @@ public class DataLoader {
         return doc;
     }
 
-    private void setData(Document doc) {
-        Element utuElement = (Element) doc.getElementsByTagName("utu").item(0);
-        Element events = (Element) utuElement.getElementsByTagName("events")
-                .item(0);
-        Element tasks = (Element) utuElement.getElementsByTagName("tasks")
-                .item(0);
-        Element exams = (Element) utuElement.getElementsByTagName("exams")
-                .item(0);
+    private boolean setSubjectsData(Document doc) {
+        try {
+            Element subjectsElement = (Element) doc.getElementsByTagName("subjects").item(0);
+            subjects = new SparseArray<String>();
 
-        this.events.clearAndLoad(events);
-        this.exams.clearAndLoad(exams);
-        this.tasks.clearAndLoad(tasks);
+            for (int counter = subjectsElement.getChildNodes().getLength() - 1; counter > 0; counter--) {
+                Node node = subjectsElement.getChildNodes().item(counter);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element subject = (Element) node;
+                    String name = subject.getAttribute("name");
+                    int id = Integer.parseInt(subject.getAttribute("id"));
 
-        Collections.reverse(this.events.events);
-        Collections.reverse(this.exams.exams);
-        Collections.reverse(this.tasks.tasks);
+                    subjects.put(id, name);
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean setUtuData(Document doc) {
+        try {
+            Element utuElement = (Element) doc.getElementsByTagName("utu").item(0);
+            Element events = (Element) utuElement.getElementsByTagName("events")
+                    .item(0);
+            Element tasks = (Element) utuElement.getElementsByTagName("tasks")
+                    .item(0);
+            Element exams = (Element) utuElement.getElementsByTagName("exams")
+                    .item(0);
+
+            this.events.clearAndLoad(events);
+            this.exams.clearAndLoad(exams);
+            this.tasks.clearAndLoad(tasks);
+
+            Collections.reverse(this.events.events);
+            Collections.reverse(this.exams.exams);
+            Collections.reverse(this.tasks.tasks);
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

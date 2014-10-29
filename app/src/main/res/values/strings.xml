@@ -41,5 +41,10 @@
     <string name="logging_in">Probíhá přihlašování</string>
     <string name="auto_login">Automatické přihlášení</string>
     <string name="logging_off">Probíhá odhlašování</string>
+    <string name="new_exam">Nový test</string>
+    <string name="title">Název</string>
+    <string name="description">Popis</string>
+    <string name="more_info_url">Více informací (URL)</string>
+    <string name="save">Uložit</string>
 
 </resources>

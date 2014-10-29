@@ -93,7 +93,7 @@ public class Login extends Activity {
         @Override
         protected LoginResult doInBackground(Void... voids) {
             if (utu.isOnline(activity)) {
-                if (utu.dataLoader.login(email.getText().toString(), password.getText().toString())) {
+                if (utu.utuClient.login(email.getText().toString(), password.getText().toString())) {
                     showData();
                     return LoginResult.WebLoginSuccess;
                 } else
