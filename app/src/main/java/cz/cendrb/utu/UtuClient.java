@@ -40,6 +40,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import cz.cendrb.utu.utucomponents.Events;
+import cz.cendrb.utu.utucomponents.Exam;
 import cz.cendrb.utu.utucomponents.Exams;
 import cz.cendrb.utu.utucomponents.Tasks;
 
@@ -64,9 +65,17 @@ public class UtuClient {
         client = new DefaultHttpClient();
     }
 
+    public boolean addExam(Exam exam)
+    {
+
+    }
+
     public boolean isAdministrator()
     {
-        getStringFrom("http://utu.herokuapp.com/login.whoa")
+        if(getStringFrom("http://utu.herokuapp.com/administrator_authenticated").equals("true"))
+            return true;
+        else
+            return false;
     }
 
     public boolean isLoggedIn() {

@@ -28,6 +28,14 @@ public class Exam {
 
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd. MM. yyyy", Locale.ENGLISH);
 
+    public Exam(String title, String description, int group, int subject, Date date) {
+        this.group = group;
+        this.title = title;
+        this.description = description;
+        this.subject = subject;
+        this.date = date;
+    }
+
     public Exam(Element data) {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         title = data.getAttribute(TITLE);

@@ -46,5 +46,6 @@
     <string name="description">Popis</string>
     <string name="more_info_url">Více informací (URL)</string>
     <string name="save">Uložit</string>
+    <string name="both_groups">obě skupiny</string>
 
 </resources>
