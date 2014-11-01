@@ -2,12 +2,9 @@ package cz.cendrb.utu;
 
 import android.app.Activity;
 import android.util.Log;
-import android.util.SparseArray;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -31,8 +28,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -52,7 +53,7 @@ public class UtuClient {
     public Exams exams;
     public Tasks tasks;
 
-    public SparseArray<String> subjects;
+    public HashMap<String, Integer> subjects;
 
     private boolean loggedIn;
 
@@ -65,17 +66,37 @@ public class UtuClient {
         client = new DefaultHttpClient();
     }
 
-    public boolean addExam(Exam exam)
-    {
+    public boolean addExam(Exam exam) {
+        try {
+            List<NameValuePair> examData = new ArrayList<NameValuePair>();
+            examData.add(new BasicNameValuePair("exam[title]", exam.getTitle()));
+            examData.add(new BasicNameValuePair("exam[description]", exam.getDescription()));
+            examData.add(new BasicNameValuePair("exam[subject_id]", String.valueOf(exam.getSubject())));
+            examData.add(new BasicNameValuePair("exam[additional_info_url]", exam.getAdditionalInfoUrl()));
+            examData.add(new BasicNameValuePair("exam[group]", String.valueOf(exam.getGroup())));
 
+            SimpleDateFormat format = new SimpleDateFormat("MM");
+            Log.d(utu.getPrefix(), exam.getDate().toString());
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTime(exam.getDate());
+            Log.d(utu.getPrefix(), String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)) + String.valueOf(calendar.get(Calendar.MONTH)) + String.valueOf(calendar.get(Calendar.YEAR)));
+            examData.add(new BasicNameValuePair("exam[date(3i)]", String.valueOf(calendar.get(Calendar.DAY_OF_MONTH))));
+            examData.add(new BasicNameValuePair("exam[date(2i)]", format.format(exam.getDate())));
+            examData.add(new BasicNameValuePair("exam[date(1i)]", String.valueOf(calendar.get(Calendar.YEAR))));
+
+            HttpPost httpPost = new HttpPost("http://utu.herokuapp.com/exams.whoa");
+            httpPost.setEntity(new UrlEncodedFormEntity(examData));
+            String result = getStringFrom(client.execute(httpPost));
+            Log.d(utu.getPrefix(), result);
+            return result.equals("success");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    public boolean isAdministrator()
-    {
-        if(getStringFrom("http://utu.herokuapp.com/administrator_authenticated").equals("true"))
-            return true;
-        else
-            return false;
+    public boolean isAdministrator() {
+        return getStringFrom("http://utu.herokuapp.com/administrator_authenticated").equals("true");
     }
 
     public boolean isLoggedIn() {
@@ -84,20 +105,13 @@ public class UtuClient {
 
     public boolean login(String email, String password) {
         try {
-            HttpPost loginPost = new HttpPost("http://utu.herokuapp.com/login.whoa");
-
             List<NameValuePair> loginData = new ArrayList<NameValuePair>();
             loginData.add(new BasicNameValuePair("email", email));
             loginData.add(new BasicNameValuePair("password", password));
 
-            loginPost.setEntity(new UrlEncodedFormEntity(loginData));
-
-            HttpResponse response = client.execute(loginPost);
+            HttpResponse response = getPOSTResponseWithParams("http://utu.herokuapp.com/login.whoa", loginData);
             Log.d(utu.getPrefix(), response.getStatusLine().toString());
-            if (response.getStatusLine().getStatusCode() == 200)
-                loggedIn = true;
-            else
-                loggedIn = false;
+            loggedIn = response.getStatusLine().getStatusCode() == 200;
             return loggedIn;
 
         } catch (UnsupportedEncodingException e) {
@@ -166,20 +180,26 @@ public class UtuClient {
     }
 
     private String getStringFrom(String url) {
-        HttpResponse response = null;
+        HttpResponse response;
         try {
             response = client.execute(new HttpGet(url));
-            StatusLine status = response.getStatusLine();
-            if (status.getStatusCode() == HttpStatus.SC_OK) {
-                OutputStream byteStream = new ByteArrayOutputStream();
-                response.getEntity().writeTo(byteStream);
-                return byteStream.toString();
-            } else
-                return null;
+            return getStringFrom(response);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private String getStringFrom(HttpResponse response) throws IOException {
+        OutputStream byteStream = new ByteArrayOutputStream();
+        response.getEntity().writeTo(byteStream);
+        return byteStream.toString();
+    }
+
+    private HttpResponse getPOSTResponseWithParams(String url, List<NameValuePair> data) throws IOException {
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setEntity(new UrlEncodedFormEntity(data));
+        return client.execute(httpPost);
     }
 
     private String loadData(File file) {
@@ -242,7 +262,7 @@ public class UtuClient {
     private boolean setSubjectsData(Document doc) {
         try {
             Element subjectsElement = (Element) doc.getElementsByTagName("subjects").item(0);
-            subjects = new SparseArray<String>();
+            subjects = new HashMap<String, Integer>();
 
             for (int counter = subjectsElement.getChildNodes().getLength() - 1; counter > 0; counter--) {
                 Node node = subjectsElement.getChildNodes().item(counter);
@@ -251,7 +271,7 @@ public class UtuClient {
                     String name = subject.getAttribute("name");
                     int id = Integer.parseInt(subject.getAttribute("id"));
 
-                    subjects.put(id, name);
+                    subjects.put(name, id);
                 }
             }
             return true;

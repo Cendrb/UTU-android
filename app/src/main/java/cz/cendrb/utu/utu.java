@@ -6,9 +6,11 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -22,11 +24,12 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 
+import cz.cendrb.utu.administrationactivities.AddEditExam;
 import cz.cendrb.utu.utucomponents.Events;
 import cz.cendrb.utu.utucomponents.Exams;
 import cz.cendrb.utu.utucomponents.Tasks;
@@ -114,16 +117,16 @@ public class utu extends Activity implements ActionBar.TabListener {
                                     .setTabListener(utuActivity)
                     );
                 }
+
+                new IsAdministrator().execute();
             }
         }).execute();
     }
 
     @Override
-    protected void onPause() {
-        if (utuClient.isLoggedIn())
-            new LogOffWithProgressDialog(this, getResources().getString(R.string.wait), getResources().getString(R.string.logging_off), null).execute();
-
-        super.onPause();
+    public void onBackPressed() {
+        logout();
+        super.onBackPressed();
     }
 
     private void refresh(final int pageIndex) {
@@ -152,9 +155,6 @@ public class utu extends Activity implements ActionBar.TabListener {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
         if (id == R.id.action_refresh) {
             item.setEnabled(false);
             int current = mViewPager.getCurrentItem();
@@ -164,7 +164,24 @@ public class utu extends Activity implements ActionBar.TabListener {
 
             return true;
         }
+        if (id == R.id.action_logout) {
+            logout();
+            finish();
+            return true;
+        }
+        if(id == 1)
+        {
+            // New exam
+            Intent intent = new Intent(this, AddEditExam.class);
+            startActivity(intent);
+        }
+
         return super.onOptionsItemSelected(item);
+    }
+
+    private void logout() {
+        if (utuClient.isLoggedIn())
+            new LogOffWithProgressDialog(this, getResources().getString(R.string.wait), getResources().getString(R.string.logging_off), null).execute();
     }
 
     @Override
@@ -263,6 +280,23 @@ public class utu extends Activity implements ActionBar.TabListener {
                     return getString(R.string.title_section3).toUpperCase(l);
             }
             return null;
+        }
+    }
+
+    public class IsAdministrator extends AsyncTask<Void, Void, Boolean>
+    {
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            return utuClient.isAdministrator();
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if(aBoolean)
+                menu.add(Menu.NONE, 1, 100, R.string.new_exam);
+
+            super.onPostExecute(aBoolean);
         }
     }
 
