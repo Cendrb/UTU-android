@@ -2,12 +2,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".utu"
     android:id="@+id/utu_menu">
-    <item android:id="@+id/action_settings"
-        android:title="@string/action_settings"
-        android:orderInCategory="100"
-        android:showAsAction="never" />
     <item android:id="@+id/action_refresh"
         android:title="@string/action_refresh"
         android:orderInCategory="1"
+        android:showAsAction="ifRoom"/>
+    <item android:id="@+id/action_logout"
+        android:title="@string/logout"
+        android:orderInCategory="2"
         android:showAsAction="ifRoom"/>
 </menu>

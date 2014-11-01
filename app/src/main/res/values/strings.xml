@@ -47,5 +47,10 @@
     <string name="more_info_url">Více informací (URL)</string>
     <string name="save">Uložit</string>
     <string name="both_groups">obě skupiny</string>
+    <string name="item_was_succesfully_added_to_database">Položka úspěšně přidána do databáze</string>
+    <string name="failed_to_add_item">Položku se nepodařilo přidat</string>
+    <string name="logout">Odhlásit</string>
+    <string name="administration">Administrace</string>
+    <string name="saving_item_to_database">Probíhá ukládání položky do databáze</string>
 
 </resources>

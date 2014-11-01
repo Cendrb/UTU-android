@@ -19,28 +19,34 @@ public class Exam {
     static final String SUBJECT = "subject";
     static final String DATE = "date";
     static final String GROUP = "group";
+    static final String ADDITIONAL_INFO_URL = "additional_info_url";
 
     String title;
     String description;
+    String additionalInfoUrl;
     int subject;
     Date date;
     int group;
+    String subjectString;
 
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd. MM. yyyy", Locale.ENGLISH);
 
-    public Exam(String title, String description, int group, int subject, Date date) {
+    public Exam(String title, String description, int group, int subject, Date date, String additionalInfoUrl) {
         this.group = group;
         this.title = title;
         this.description = description;
         this.subject = subject;
         this.date = date;
+        this.additionalInfoUrl = additionalInfoUrl;
     }
 
     public Exam(Element data) {
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
         title = data.getAttribute(TITLE);
         description = data.getAttribute(DESCRIPTION);
-        subject = Integer.parseInt(data.getAttribute(SUBJECT));
+        additionalInfoUrl = data.getAttribute(ADDITIONAL_INFO_URL);
+        subjectString = data.getAttribute(SUBJECT);
+        subject = utu.utuClient.subjects.get(subjectString);
         try {
             date = df.parse(data.getAttribute(DATE));
         } catch (ParseException e) {
@@ -55,7 +61,7 @@ public class Exam {
         HashMap<String, String> record = new HashMap<String, String>();
         record.put(TITLE, title);
         record.put(DESCRIPTION, description);
-        record.put(SUBJECT, utu.utuClient.subjects.get(subject));
+        record.put(SUBJECT, subjectString);
         record.put(DATE, dateFormat.format(date));
         String stringGroup = "";
         switch (group) {
@@ -73,4 +79,31 @@ public class Exam {
         return record;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public int getSubject() {
+        return subject;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public int getGroup() {
+        return group;
+    }
+
+    public String getAdditionalInfoUrl() {
+        return additionalInfoUrl;
+    }
+
+    public String getSubjectString() {
+        return subjectString;
+    }
 }
