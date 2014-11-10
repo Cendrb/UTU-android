@@ -1,9 +1,9 @@
 package cz.cendrb.utu.administrationactivities;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,13 +24,12 @@ import cz.cendrb.utu.ManualSelect;
 import cz.cendrb.utu.R;
 import cz.cendrb.utu.TaskWithProgressDialog;
 import cz.cendrb.utu.utu;
-import cz.cendrb.utu.utucomponents.Exam;
 import cz.cendrb.utu.utucomponents.Task;
 
 /**
  * Created by Cendrb on 27. 10. 2014.
  */
-public class AddEditExam extends Activity {
+public class AddEditTask extends Activity {
 
     SimpleDateFormat format = new SimpleDateFormat("dd. MM. yyyy");
     Spinner subjectSelect;
@@ -51,9 +50,9 @@ public class AddEditExam extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        setContentView(R.layout.activity_add_exam);
+        setContentView(R.layout.activity_add_task);
 
-        subjectSelect = (Spinner) findViewById(R.id.addExamSubject);
+        subjectSelect = (Spinner) findViewById(R.id.addTaskSubject);
         ArrayAdapter<CharSequence> subjectAdapter = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item);
         for (Map.Entry<String, Integer> entry : utu.utuClient.subjects.entrySet()) {
             subjectAdapter.add(entry.getKey());
@@ -73,7 +72,7 @@ public class AddEditExam extends Activity {
             }
         });
 
-        groupSelect = (Spinner) findViewById(R.id.addExamGroup);
+        groupSelect = (Spinner) findViewById(R.id.addTaskGroup);
         ArrayAdapter<CharSequence> groupAdapter = ArrayAdapter.createFromResource(this, R.array.groups_array, android.R.layout.simple_spinner_item);
         groupAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         groupSelect.setAdapter(groupAdapter);
@@ -89,33 +88,33 @@ public class AddEditExam extends Activity {
             }
         });
 
-        saveButton = (Button) findViewById(R.id.addExamSaveButton);
+        saveButton = (Button) findViewById(R.id.addTaskSaveButton);
 
-        titleText = (EditText) findViewById(R.id.addExamName);
+        titleText = (EditText) findViewById(R.id.addTaskName);
 
-        descriptionText = (EditText) findViewById(R.id.addExamDescription);
+        descriptionText = (EditText) findViewById(R.id.addTaskDescription);
 
-        additionalInformationText = (EditText) findViewById(R.id.addExamAdditionalInformation);
+        additionalInformationText = (EditText) findViewById(R.id.addTaskAdditionalInformation);
 
-        dateSelectButton = (Button) findViewById(R.id.addExamDate);
+        dateSelectButton = (Button) findViewById(R.id.addTaskDate);
+
 
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            String title = bundle.getString(Exam.TITLE);
+            String title = bundle.getString(Task.TITLE);
             if (title != null && title != "") {
                 titleText.setText(title);
-                descriptionText.setText(bundle.getString(Exam.DESCRIPTION));
+                descriptionText.setText(bundle.getString(Task.DESCRIPTION));
                 subjectSelect.setSelection(new ArrayList<Integer>(utu.utuClient.subjects.values()).indexOf(bundle.getInt(Task.SUBJECT)));
-                additionalInformationText.setText(bundle.getString(Exam.ADDITIONAL_INFO_URL));
-                groupSelect.setSelection(bundle.getInt(Exam.GROUP));
-                dateSelectButton.setText(bundle.getString(Exam.DATE));
-                id = bundle.getInt(Exam.ID);
-
+                additionalInformationText.setText(bundle.getString(Task.ADDITIONAL_INFO_URL));
+                groupSelect.setSelection(bundle.getInt(Task.GROUP));
+                dateSelectButton.setText(bundle.getString(Task.DATE));
                 try {
-                    eDate = format.parse(bundle.getString(Exam.DATE));
+                    eDate = format.parse(bundle.getString(Task.DATE));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
+                id = bundle.getInt(Task.ID);
 
                 editMode = true;
             }
@@ -145,7 +144,7 @@ public class AddEditExam extends Activity {
         int id = item.getItemId();
         if (id == 0) {
             // Delete
-            new ExamRemover(this).execute();
+            new TaskRemover(this).execute();
         }
 
         return super.onOptionsItemSelected(item);
@@ -165,43 +164,21 @@ public class AddEditExam extends Activity {
 
     public void onSaveButtonClick(View view) {
         if (editMode)
-            new ExamUpdater(this).execute();
+            new TaskUpdater(this).execute();
         else
-            new ExamAdder(this).execute();
+            new TaskAdder(this).execute();
     }
 
-    public class ExamRemover extends TaskWithProgressDialog<Boolean> {
+    public class TaskAdder extends TaskWithProgressDialog<Boolean> {
 
-        public ExamRemover(Activity activity) {
-            super(activity, getString(R.string.wait), getString(R.string.item_deleting), null);
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... voids) {
-            return utu.utuClient.deleteExam(id);
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
-            if (result) {
-                Toast.makeText(activity, getString(R.string.item_was_successfully_deleted), Toast.LENGTH_LONG).show();
-                finish();
-            } else
-                Toast.makeText(activity, getString(R.string.failed_to_delete_item), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    public class ExamAdder extends TaskWithProgressDialog<Boolean> {
-
-        public ExamAdder(Activity activity) {
+        public TaskAdder(Activity activity) {
             super(activity, getString(R.string.wait), getString(R.string.saving_item_to_database), null);
         }
 
         @Override
         protected Boolean doInBackground(Void... voids) {
-            Exam exam = new Exam(titleText.getText().toString(), descriptionText.getText().toString(), group, utu.utuClient.subjects.get(subjectName), eDate, additionalInformationText.getText().toString(), id);
-            return utu.utuClient.addExam(exam);
+            Task task = new Task(titleText.getText().toString(), descriptionText.getText().toString(), group, utu.utuClient.subjects.get(subjectName), eDate, additionalInformationText.getText().toString(), id);
+            return utu.utuClient.addTask(task);
         }
 
         @Override
@@ -215,16 +192,38 @@ public class AddEditExam extends Activity {
         }
     }
 
-    public class ExamUpdater extends TaskWithProgressDialog<Boolean> {
+    public class TaskRemover extends TaskWithProgressDialog<Boolean> {
 
-        public ExamUpdater(Activity activity) {
+        public TaskRemover(Activity activity) {
+            super(activity, getString(R.string.wait), getString(R.string.item_deleting), null);
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            return utu.utuClient.deleteTask(id);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
+            if (result) {
+                Toast.makeText(activity, getString(R.string.item_was_successfully_deleted), Toast.LENGTH_LONG).show();
+                finish();
+            } else
+                Toast.makeText(activity, getString(R.string.failed_to_delete_item), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public class TaskUpdater extends TaskWithProgressDialog<Boolean> {
+
+        public TaskUpdater(Activity activity) {
             super(activity, getString(R.string.wait), getString(R.string.item_updating), null);
         }
 
         @Override
         protected Boolean doInBackground(Void... voids) {
-            Exam exam = new Exam(titleText.getText().toString(), descriptionText.getText().toString(), group, utu.utuClient.subjects.get(subjectName), eDate, additionalInformationText.getText().toString(), id);
-            return utu.utuClient.updateExam(exam);
+            Task task = new Task(titleText.getText().toString(), descriptionText.getText().toString(), group, utu.utuClient.subjects.get(subjectName), eDate, additionalInformationText.getText().toString(), id);
+            return utu.utuClient.updateTask(task);
         }
 
         @Override

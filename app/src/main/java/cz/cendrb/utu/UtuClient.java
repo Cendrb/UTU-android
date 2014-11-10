@@ -43,6 +43,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import cz.cendrb.utu.utucomponents.Events;
 import cz.cendrb.utu.utucomponents.Exam;
 import cz.cendrb.utu.utucomponents.Exams;
+import cz.cendrb.utu.utucomponents.Task;
 import cz.cendrb.utu.utucomponents.Tasks;
 
 public class UtuClient {
@@ -58,6 +59,8 @@ public class UtuClient {
     private boolean loggedIn;
 
     HttpClient client;
+
+
 
     public UtuClient() {
         events = new Events();
@@ -76,18 +79,13 @@ public class UtuClient {
             examData.add(new BasicNameValuePair("exam[group]", String.valueOf(exam.getGroup())));
 
             SimpleDateFormat format = new SimpleDateFormat("MM");
-            Log.d(utu.getPrefix(), exam.getDate().toString());
             Calendar calendar = new GregorianCalendar();
             calendar.setTime(exam.getDate());
-            Log.d(utu.getPrefix(), String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)) + String.valueOf(calendar.get(Calendar.MONTH)) + String.valueOf(calendar.get(Calendar.YEAR)));
             examData.add(new BasicNameValuePair("exam[date(3i)]", String.valueOf(calendar.get(Calendar.DAY_OF_MONTH))));
             examData.add(new BasicNameValuePair("exam[date(2i)]", format.format(exam.getDate())));
             examData.add(new BasicNameValuePair("exam[date(1i)]", String.valueOf(calendar.get(Calendar.YEAR))));
 
-            HttpPost httpPost = new HttpPost("http://utu.herokuapp.com/exams.whoa");
-            httpPost.setEntity(new UrlEncodedFormEntity(examData));
-            String result = getStringFrom(client.execute(httpPost));
-            Log.d(utu.getPrefix(), result);
+            String result = getStringFrom(getPOSTResponseWithParams("http://utu.herokuapp.com/exams.whoa", examData));
             return result.equals("success");
         } catch (IOException e) {
             e.printStackTrace();
@@ -95,8 +93,111 @@ public class UtuClient {
         }
     }
 
+    public boolean addTask(Task task) {
+        try {
+            List<NameValuePair> taskData = new ArrayList<NameValuePair>();
+            taskData.add(new BasicNameValuePair("task[title]", task.getTitle()));
+            taskData.add(new BasicNameValuePair("task[description]", task.getDescription()));
+            taskData.add(new BasicNameValuePair("task[subject_id]", String.valueOf(task.getSubject())));
+            taskData.add(new BasicNameValuePair("task[additional_info_url]", task.getAdditionalInfoUrl()));
+            taskData.add(new BasicNameValuePair("task[group]", String.valueOf(task.getGroup())));
+
+            SimpleDateFormat format = new SimpleDateFormat("MM");
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTime(task.getDate());
+            taskData.add(new BasicNameValuePair("task[date(3i)]", String.valueOf(calendar.get(Calendar.DAY_OF_MONTH))));
+            taskData.add(new BasicNameValuePair("task[date(2i)]", format.format(task.getDate())));
+            taskData.add(new BasicNameValuePair("task[date(1i)]", String.valueOf(calendar.get(Calendar.YEAR))));
+
+            String result = getStringFrom(getPOSTResponseWithParams("http://utu.herokuapp.com/tasks.whoa", taskData));
+            return result.equals("success");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+    public boolean updateTask(Task task) {
+        try {
+            List<NameValuePair> taskData = new ArrayList<NameValuePair>();
+            taskData.add(new BasicNameValuePair("_method", "patch"));
+            taskData.add(new BasicNameValuePair("task[title]", task.getTitle()));
+            taskData.add(new BasicNameValuePair("task[description]", task.getDescription()));
+            taskData.add(new BasicNameValuePair("task[subject_id]", String.valueOf(task.getSubject())));
+            taskData.add(new BasicNameValuePair("task[additional_info_url]", task.getAdditionalInfoUrl()));
+            taskData.add(new BasicNameValuePair("task[group]", String.valueOf(task.getGroup())));
+
+            SimpleDateFormat format = new SimpleDateFormat("MM");
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTime(task.getDate());
+            taskData.add(new BasicNameValuePair("task[date(3i)]", String.valueOf(calendar.get(Calendar.DAY_OF_MONTH))));
+            taskData.add(new BasicNameValuePair("task[date(2i)]", format.format(task.getDate())));
+            taskData.add(new BasicNameValuePair("task[date(1i)]", String.valueOf(calendar.get(Calendar.YEAR))));
+
+            String result = getStringFrom(getPOSTResponseWithParams("http://utu.herokuapp.com/tasks/" + task.getId() + ".whoa", taskData));
+            return result.equals("success");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean updateExam(Exam exam) {
+        try {
+            List<NameValuePair> examData = new ArrayList<NameValuePair>();
+            examData.add(new BasicNameValuePair("_method", "patch"));
+            examData.add(new BasicNameValuePair("exam[title]", exam.getTitle()));
+            examData.add(new BasicNameValuePair("exam[description]", exam.getDescription()));
+            examData.add(new BasicNameValuePair("exam[subject_id]", String.valueOf(exam.getSubject())));
+            examData.add(new BasicNameValuePair("exam[additional_info_url]", exam.getAdditionalInfoUrl()));
+            examData.add(new BasicNameValuePair("exam[group]", String.valueOf(exam.getGroup())));
+
+            SimpleDateFormat format = new SimpleDateFormat("MM");
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTime(exam.getDate());
+            examData.add(new BasicNameValuePair("exam[date(3i)]", String.valueOf(calendar.get(Calendar.DAY_OF_MONTH))));
+            examData.add(new BasicNameValuePair("exam[date(2i)]", format.format(exam.getDate())));
+            examData.add(new BasicNameValuePair("exam[date(1i)]", String.valueOf(calendar.get(Calendar.YEAR))));
+
+            String result = getStringFrom(getPOSTResponseWithParams("http://utu.herokuapp.com/exams/" + exam.getId() + ".whoa", examData));
+            return result.equals("success");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteExam(int id) {
+        try {
+            List<NameValuePair> examData = new ArrayList<NameValuePair>();
+            examData.add(new BasicNameValuePair("_method", "delete"));
+            String result = getStringFrom(getPOSTResponseWithParams("http://utu.herokuapp.com/exams/" + id + ".whoa", examData));
+            return result.equals("success");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteTask(int id) {
+        try {
+            List<NameValuePair> examData = new ArrayList<NameValuePair>();
+            examData.add(new BasicNameValuePair("_method", "delete"));
+            String result = getStringFrom(getPOSTResponseWithParams("http://utu.herokuapp.com/tasks/" + id + ".whoa", examData));
+            return result.equals("success");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean isAdministrator() {
-        return getStringFrom("http://utu.herokuapp.com/administrator_authenticated").equals("true");
+        String result = getStringFrom("http://utu.herokuapp.com/administrator_authenticated");
+        if (result != null)
+            return result.equals("true");
+        else
+            return false;
     }
 
     public boolean isLoggedIn() {
@@ -175,6 +276,13 @@ public class UtuClient {
         return true;
     }
 
+    public boolean backupExists(Activity activity)
+    {
+        File utuFile = activity.getFileStreamPath(BACKUP_FILE_NAME);
+        File subjectsFile = activity.getFileStreamPath(BACKUP_SUBJECTS_FILE_NAME);
+        return utuFile.exists() && subjectsFile.exists();
+    }
+
     public long getLastModifiedFromBackupData(Activity activity) {
         return activity.getFileStreamPath(BACKUP_FILE_NAME).lastModified();
     }
@@ -198,7 +306,7 @@ public class UtuClient {
 
     private HttpResponse getPOSTResponseWithParams(String url, List<NameValuePair> data) throws IOException {
         HttpPost httpPost = new HttpPost(url);
-        httpPost.setEntity(new UrlEncodedFormEntity(data));
+        httpPost.setEntity(new UrlEncodedFormEntity(data, "UTF-8"));
         return client.execute(httpPost);
     }
 

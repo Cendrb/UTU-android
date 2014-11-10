@@ -12,14 +12,16 @@ import java.util.Locale;
 
 public class Event {
 
-    static final String TITLE = "title";
-    static final String DESCRIPTION = "description";
-    static final String LOCATION = "location";
-    static final String PRICE = "price";
-    static final String START = "eventStart";
-    static final String END = "eventEnd";
-    static final String PAY_DATE = "payDate";
+    public static final String TITLE = "title";
+    public static final String DESCRIPTION = "description";
+    public static final String LOCATION = "location";
+    public static final String PRICE = "price";
+    public static final String START = "eventStart";
+    public static final String END = "eventEnd";
+    public static final String PAY_DATE = "payDate";
+    public static final String ID = "id";
 
+    int id;
     String title;
     String description;
     String location;
@@ -47,6 +49,7 @@ public class Event {
             pay = new Date();
             e.printStackTrace();
         }
+        id = Integer.parseInt(data.getAttribute(ID));
     }
 
     public HashMap<String, String> getRecord() {
@@ -61,4 +64,35 @@ public class Event {
         return record;
     }
 
+    public Date getPay() {
+        return pay;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public Date getStart() {
+        return start;
+    }
+
+    public Date getEnd() {
+        return end;
+    }
 }

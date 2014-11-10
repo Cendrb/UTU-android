@@ -25,8 +25,9 @@
     <string name="end_of_choice">Konec výběru</string>
     <string name="first">první</string>
     <string name="second">druhá</string>
-    <string name="successfully_loaded_from_backup">Internetové připojení není dostupné. Byla použita poslední stažená data.</string>
+    <string name="successfully_loaded_from_backup">Internetové připojení není dostupné. Byla použita data ze dne</string>
     <string name="failed_to_load_data">Data nemohla být nahrána. (Internetové připojení je nedostupné a žádná záloha nebyla nalezena)</string>
+    <string name="failed_to_load_data_from_backup">Data ze zálohy jsou neplatná. Připojte se k internetu a stáhněte data znovu.</string>
     <string name="view_data">Zobrazit vybraná data</string>
     <string name="login_text">Přihlášení</string>
     <string name="username_email">Přihlašovací jméno (email)</string>
@@ -42,15 +43,24 @@
     <string name="auto_login">Automatické přihlášení</string>
     <string name="logging_off">Probíhá odhlašování</string>
     <string name="new_exam">Nový test</string>
+    <string name="new_task">Nový úkol</string>
+    <string name="new_event">Nová událost</string>
     <string name="title">Název</string>
     <string name="description">Popis</string>
     <string name="more_info_url">Více informací (URL)</string>
     <string name="save">Uložit</string>
     <string name="both_groups">obě skupiny</string>
     <string name="item_was_succesfully_added_to_database">Položka úspěšně přidána do databáze</string>
-    <string name="failed_to_add_item">Položku se nepodařilo přidat</string>
+    <string name="failed_to_add_item">Položku se nepodařilo přidat. (některé položky ve formuláři jsou chybně vyplněny nebo internetové připojení není dostupné)</string>
     <string name="logout">Odhlásit</string>
     <string name="administration">Administrace</string>
     <string name="saving_item_to_database">Probíhá ukládání položky do databáze</string>
+    <string name="item_successfully_edited">Položka byla úspěšně upravena</string>
+    <string name="failed_to_edit_item">Položku se nepodařilo upravit. (některé položky ve formuláři jsou chybně vyplněny nebo internetové připojení není dostupné)</string>
+    <string name="item_updating">Probíhá aktualizace položky v databázi</string>
+    <string name="exterminate">Vyhladit</string>
+    <string name="item_deleting">Probíhá mazání položky</string>
+    <string name="item_was_successfully_deleted">Položka byla úspěšně vymazána</string>
+    <string name="failed_to_delete_item">Položku se nepodařilo smazat</string>
 
 </resources>

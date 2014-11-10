@@ -35,6 +35,14 @@ public class Exams {
         }
     }
 
+    public Exam findExamWithId(int id) {
+        for (Exam exam : exams) {
+            if(exam.getId() == id)
+                return exam;
+        }
+        return null;
+    }
+
     private void setFromAndTo() {
         from = new String[]{Exam.TITLE, Exam.DESCRIPTION, Exam.SUBJECT,
                 Exam.DATE, Exam.GROUP};

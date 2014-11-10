@@ -2,10 +2,12 @@ package cz.cendrb.utu;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
@@ -20,24 +22,30 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 import cz.cendrb.utu.administrationactivities.AddEditExam;
+import cz.cendrb.utu.administrationactivities.AddEditTask;
 import cz.cendrb.utu.utucomponents.Events;
+import cz.cendrb.utu.utucomponents.Exam;
 import cz.cendrb.utu.utucomponents.Exams;
+import cz.cendrb.utu.utucomponents.Task;
 import cz.cendrb.utu.utucomponents.Tasks;
 
 
 public class utu extends Activity implements ActionBar.TabListener {
 
     static final String NAME = "UTU";
+    boolean administrator;
 
     public static String getPrefix() {
         return NAME;
@@ -126,7 +134,6 @@ public class utu extends Activity implements ActionBar.TabListener {
     @Override
     public void onBackPressed() {
         logout();
-        super.onBackPressed();
     }
 
     private void refresh(final int pageIndex) {
@@ -169,10 +176,14 @@ public class utu extends Activity implements ActionBar.TabListener {
             finish();
             return true;
         }
-        if(id == 1)
-        {
+        if (id == 1) {
             // New exam
             Intent intent = new Intent(this, AddEditExam.class);
+            startActivity(intent);
+        }
+        if (id == 2) {
+            // New task
+            Intent intent = new Intent(this, AddEditTask.class);
             startActivity(intent);
         }
 
@@ -181,7 +192,14 @@ public class utu extends Activity implements ActionBar.TabListener {
 
     private void logout() {
         if (utuClient.isLoggedIn())
-            new LogOffWithProgressDialog(this, getResources().getString(R.string.wait), getResources().getString(R.string.logging_off), null).execute();
+            new LogOffWithProgressDialog(this, getResources().getString(R.string.wait), getResources().getString(R.string.logging_off), new Runnable() {
+                @Override
+                public void run() {
+                    finish();
+                }
+            }).execute();
+        else
+            finish();
     }
 
     @Override
@@ -202,26 +220,16 @@ public class utu extends Activity implements ActionBar.TabListener {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment {
+    public class PlaceholderFragment extends Fragment {
         /**
          * The fragment argument representing the section number for this
          * fragment.
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
+        private int sectionNumber;
 
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
+        public PlaceholderFragment(int sectionNumber) {
+            this.sectionNumber = sectionNumber;
         }
 
         @Override
@@ -230,7 +238,7 @@ public class utu extends Activity implements ActionBar.TabListener {
             View rootView = inflater.inflate(R.layout.fragment_utu, container, false);
             ListView list = (ListView) rootView.findViewById(R.id.utuListView);
 
-            switch (getArguments().getInt(ARG_SECTION_NUMBER)) {
+            switch (sectionNumber) {
                 case 1:
                     list.setAdapter(new SimpleAdapter(container.getContext(), utu.utuClient.tasks.getListForAdapter(), R.layout.task_item, Tasks.from, Tasks.to));
                     break;
@@ -241,6 +249,42 @@ public class utu extends Activity implements ActionBar.TabListener {
                     list.setAdapter(new SimpleAdapter(container.getContext(), utu.utuClient.exams.getListForAdapter(), R.layout.exam_item, Exams.from, Exams.to));
                     break;
             }
+
+            list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    if (administrator) {
+                        switch (sectionNumber) {
+                            case 1:
+                                HashMap<String, String> taskData = ((HashMap<String, String>) adapterView.getItemAtPosition(i));
+                                int taskId = Integer.parseInt(taskData.get(Task.ID));
+                                Task task = utu.utuClient.tasks.findTaskWithId(taskId);
+                                if (task != null) {
+                                    task.startEditActivity(getActivity());
+                                } else {
+                                    Log.d(getPrefix(), "Unable to find task with id: " + String.valueOf(taskId));
+                                }
+                                break;
+                            case 2:
+                                break;
+                            case 3:
+                                HashMap<String, String> examData = ((HashMap<String, String>) adapterView.getItemAtPosition(i));
+                                int examId = Integer.parseInt(examData.get(Task.ID));
+                                Exam exam = utu.utuClient.exams.findExamWithId(examId);
+                                if (exam != null) {
+                                    exam.startEditActivity(getActivity());
+                                } else {
+                                    Log.d(getPrefix(), "Unable to find exam with id: " + String.valueOf(examId));
+                                }
+                                break;
+                        }
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            });
+
             return rootView;
         }
     }
@@ -259,7 +303,7 @@ public class utu extends Activity implements ActionBar.TabListener {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            return new PlaceholderFragment(position + 1);
         }
 
         @Override
@@ -283,8 +327,7 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
     }
 
-    public class IsAdministrator extends AsyncTask<Void, Void, Boolean>
-    {
+    public class IsAdministrator extends AsyncTask<Void, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(Void... voids) {
@@ -293,8 +336,12 @@ public class utu extends Activity implements ActionBar.TabListener {
 
         @Override
         protected void onPostExecute(Boolean aBoolean) {
-            if(aBoolean)
+            if (aBoolean) {
                 menu.add(Menu.NONE, 1, 100, R.string.new_exam);
+                menu.add(Menu.NONE, 2, 101, R.string.new_task);
+                administrator = true;
+            } else
+                administrator = false;
 
             super.onPostExecute(aBoolean);
         }
@@ -320,27 +367,41 @@ public class utu extends Activity implements ActionBar.TabListener {
 
         @Override
         protected LoadResult doInBackground(Void... voids) {
-            if (isOnline(activity))
-                if (utu.utuClient.loadFromNetAndBackup(activity))
+            if (isOnline(activity)) {
+                if (utu.utuClient.loadFromNetAndBackup(activity)) {
                     return LoadResult.WebSuccess;
-            if (utu.utuClient.loadFromBackup(activity))
-                return LoadResult.BackupSuccess;
+                }
+            } else {
+                if (utu.utuClient.backupExists(activity)) {
+                    if(utu.utuClient.loadFromBackup(activity))
+                        return LoadResult.BackupSuccess;
+                    else
+                        return LoadResult.BackupFailure;
+                }
+            }
             return LoadResult.Failure;
         }
 
         @Override
         protected void onPostExecute(LoadResult loadResult) {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd. MM. yyyy HH:mm");
+            DateFormat format = new SimpleDateFormat(" dd. MM. yyyy (HH:mm)");
+            DateFormat labelFormat = new SimpleDateFormat(" - dd. MM. (HH:mm)");
             switch (loadResult) {
                 case WebSuccess:
-                    activity.setTitle(activity.getString(R.string.app_name) + " (" + sdf.format(new Date()) + ")");
+                    activity.setTitle(activity.getString(R.string.app_name) + " (AKTUÁLNÍ)");
+                    break;
+                case BackupFailure:
+                    Toast.makeText(activity, getString(R.string.failed_to_load_data_from_backup), Toast.LENGTH_LONG).show();
+                    finish();
                     break;
                 case BackupSuccess:
-                    activity.setTitle(activity.getString(R.string.app_name) + " (" + sdf.format(utu.utuClient.getLastModifiedFromBackupData(activity)) + ")");
-                    Toast.makeText(activity, R.string.successfully_loaded_from_backup, Toast.LENGTH_LONG).show();
+                    Date date = new Date(utuClient.getLastModifiedFromBackupData(activity));
+                    Toast.makeText(activity, getString(R.string.successfully_loaded_from_backup) + format.format(date), Toast.LENGTH_LONG).show();
+                    activity.setTitle(activity.getString(R.string.app_name) + labelFormat.format(date));
                     break;
                 case Failure:
                     Toast.makeText(activity, R.string.failed_to_load_data, Toast.LENGTH_LONG).show();
+                    finish();
                     break;
             }
             super.onPostExecute(loadResult);

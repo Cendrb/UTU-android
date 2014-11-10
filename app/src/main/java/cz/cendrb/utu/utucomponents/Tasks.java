@@ -43,6 +43,14 @@ public class Tasks {
                 R.id.taskGroup};
     }
 
+    public Task findTaskWithId(int id) {
+        for (Task task : tasks) {
+            if(task.getId() == id)
+                return task;
+        }
+        return null;
+    }
+
     public List<HashMap<String, String>> getListForAdapter() {
         List<HashMap<String, String>> data = new ArrayList<HashMap<String, String>>();
 

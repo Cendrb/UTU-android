@@ -99,8 +99,7 @@ public class Login extends Activity {
                 } else
                     return LoginResult.InvalidUsernameOrPassword;
             } else {
-                showData();
-                return LoginResult.BackupSuccess;
+                return LoginResult.FailedToConnect;
             }
         }
 
@@ -124,6 +123,9 @@ public class Login extends Activity {
                         editor.putString(Login.PASSWORD, password.getText().toString());
                         editor.apply();
                     }
+                    break;
+                case FailedToConnect:
+                    showData();
                     break;
             }
             super.onPostExecute(loginResult);
