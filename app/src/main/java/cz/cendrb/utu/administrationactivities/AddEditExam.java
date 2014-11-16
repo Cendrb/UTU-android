@@ -161,6 +161,18 @@ public class AddEditExam extends Activity {
             new ExamAdder(this).execute();
     }
 
+    public void onDateSelectButtonClick(final View view) {
+        utu.DatePickerFragment dialog = new utu.DatePickerFragment();
+        dialog.show(getFragmentManager(), "Choose penis");
+        dialog.setOnDateChangedListener(new utu.DatePickerFragment.OnDateChangedListener() {
+            @Override
+            public void dateChanged(Date date) {
+                ((Button) view).setText(format.format(date));
+                eDate = date;
+            }
+        });
+    }
+
     public static class ExamRemover extends TaskWithProgressDialog<Boolean> {
 
         int id;

@@ -2,6 +2,9 @@ package cz.cendrb.utu;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -21,12 +24,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -499,8 +504,8 @@ public class utu extends Activity implements ActionBar.TabListener {
 
         @Override
         protected void onPostExecute(LoadResult loadResult) {
+            menu.removeItem(3);
             DateFormat format = new SimpleDateFormat(" dd. MM. yyyy (HH:mm)");
-            DateFormat labelFormat = new SimpleDateFormat("dd. MM. (HH:mm)");
             switch (loadResult) {
                 case WebSuccess:
                     activity.setTitle(activity.getString(R.string.app_name));
@@ -513,7 +518,6 @@ public class utu extends Activity implements ActionBar.TabListener {
                     Date date = new Date(utuClient.getLastModifiedFromBackupData(activity));
                     Toast.makeText(activity, getString(R.string.successfully_loaded_from_backup) + format.format(date), Toast.LENGTH_LONG).show();
                     activity.setTitle(activity.getString(R.string.app_name));
-                    menu.removeItem(3);
                     MenuItem menuItem = menu.add(Menu.NONE, 3, 90, R.string.data_version);
                     menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
                     menuItem.setIcon(android.R.drawable.ic_dialog_alert);
@@ -524,6 +528,39 @@ public class utu extends Activity implements ActionBar.TabListener {
                     break;
             }
             super.onPostExecute(loadResult);
+        }
+    }
+
+    public static class DatePickerFragment extends DialogFragment
+            implements DatePickerDialog.OnDateSetListener {
+
+        OnDateChangedListener dateChanged;
+
+        public interface OnDateChangedListener {
+            void dateChanged(Date date);
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the current date as the default date in the picker
+            final Calendar c = Calendar.getInstance();
+            int year = c.get(Calendar.YEAR);
+            int month = c.get(Calendar.MONTH);
+            int day = c.get(Calendar.DAY_OF_MONTH);
+
+            // Create a new instance of DatePickerDialog and return it
+            return new DatePickerDialog(getActivity(), this, year, month, day);
+        }
+
+        public void setOnDateChangedListener(OnDateChangedListener listener) {
+            dateChanged = listener;
+        }
+
+        public void onDateSet(DatePicker view, int year, int month, int day) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(year, month, day);
+            if (dateChanged != null)
+                dateChanged.dateChanged(calendar.getTime());
         }
     }
 
