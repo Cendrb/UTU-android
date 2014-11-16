@@ -145,10 +145,10 @@ public class AddEditTask extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == 0) {
+        int menuId = item.getItemId();
+        if (menuId == 0) {
             // Delete
-            new TaskRemover(this).execute();
+            new TaskRemover(this, id, true).execute();
         }
 
         return super.onOptionsItemSelected(item);
@@ -173,6 +173,39 @@ public class AddEditTask extends Activity {
             new TaskAdder(this).execute();
     }
 
+    public static class TaskRemover extends TaskWithProgressDialog<Boolean> {
+
+        int id;
+        boolean finish;
+
+        public TaskRemover(Activity activity, int id, Runnable postAction) {
+            super(activity, activity.getString(R.string.wait), activity.getString(R.string.item_deleting), postAction);
+            this.id = id;
+        }
+
+        public TaskRemover(Activity activity, int id, boolean finishAfterSuccess) {
+            super(activity, activity.getString(R.string.wait), activity.getString(R.string.item_deleting));
+            this.id = id;
+            finish = finishAfterSuccess;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            return utu.utuClient.deleteTask(id);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
+            if (result) {
+                Toast.makeText(activity, activity.getString(R.string.item_was_successfully_deleted), Toast.LENGTH_LONG).show();
+                if (finish)
+                    activity.finish();
+            } else
+                Toast.makeText(activity, activity.getString(R.string.failed_to_delete_item), Toast.LENGTH_LONG).show();
+        }
+    }
+
     public class TaskAdder extends TaskWithProgressDialog<Boolean> {
 
         public TaskAdder(Activity activity) {
@@ -193,28 +226,6 @@ public class AddEditTask extends Activity {
                 finish();
             } else
                 Toast.makeText(activity, getString(R.string.failed_to_add_item), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    public class TaskRemover extends TaskWithProgressDialog<Boolean> {
-
-        public TaskRemover(Activity activity) {
-            super(activity, getString(R.string.wait), getString(R.string.item_deleting), null);
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... voids) {
-            return utu.utuClient.deleteTask(id);
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
-            if (result) {
-                Toast.makeText(activity, getString(R.string.item_was_successfully_deleted), Toast.LENGTH_LONG).show();
-                finish();
-            } else
-                Toast.makeText(activity, getString(R.string.failed_to_delete_item), Toast.LENGTH_LONG).show();
         }
     }
 

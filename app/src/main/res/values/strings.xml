@@ -58,11 +58,19 @@
     <string name="item_successfully_edited">Položka byla úspěšně upravena</string>
     <string name="failed_to_edit_item">Položku se nepodařilo upravit. (některé položky ve formuláři jsou chybně vyplněny nebo internetové připojení není dostupné)</string>
     <string name="item_updating">Probíhá aktualizace položky v databázi</string>
-    <string name="exterminate">Vyhladit</string>
+    <string name="exterminate">Odstranit</string>
     <string name="item_deleting">Probíhá mazání položky</string>
     <string name="item_was_successfully_deleted">Položka byla úspěšně vymazána</string>
     <string name="failed_to_delete_item">Položku se nepodařilo smazat</string>
     <string name="edit_exam">Upravit test</string>
     <string name="edit_task">Upravit úkol</string>
+    <string name="hide">Skrýt</string>
+    <string name="edit">Upravit</string>
+    <string name="open_link_for_more_information">Otevřít odkaz pro více informací</string>
+    <string name="hiding_item">"Probíhá skrývání položky"</string>
+    <string name="additional_info">Další informace:</string>
+    <string name="data_version">Verze dat</string>
+    <string name="data_from_backup">Jsou zobrazována data ze dne</string>
+    <string name="web_version">Webová verze</string>
 
 </resources>

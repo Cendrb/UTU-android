@@ -146,10 +146,10 @@ public class AddEditExam extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == 0) {
+        int menuId = item.getItemId();
+        if (menuId == 0) {
             // Delete
-            new ExamRemover(this).execute();
+            new ExamRemover(this, id, true).execute();
         }
 
         return super.onOptionsItemSelected(item);
@@ -174,10 +174,22 @@ public class AddEditExam extends Activity {
             new ExamAdder(this).execute();
     }
 
-    public class ExamRemover extends TaskWithProgressDialog<Boolean> {
+    public static class ExamRemover extends TaskWithProgressDialog<Boolean> {
 
-        public ExamRemover(Activity activity) {
-            super(activity, getString(R.string.wait), getString(R.string.item_deleting), null);
+        int id;
+        boolean finish;
+
+        public ExamRemover(Activity activity, int id, Runnable postAction) {
+            super(activity, activity.getString(R.string.wait), activity.getString(R.string.item_deleting), postAction);
+            this.id = id;
+            this.activity = activity;
+        }
+
+        public ExamRemover(Activity activity, int id, boolean finishAfterSuccess) {
+            super(activity, activity.getString(R.string.wait), activity.getString(R.string.item_deleting));
+            this.id = id;
+            this.activity = activity;
+            finish = finishAfterSuccess;
         }
 
         @Override
@@ -189,10 +201,11 @@ public class AddEditExam extends Activity {
         protected void onPostExecute(Boolean result) {
             super.onPostExecute(result);
             if (result) {
-                Toast.makeText(activity, getString(R.string.item_was_successfully_deleted), Toast.LENGTH_LONG).show();
-                finish();
+                Toast.makeText(activity, activity.getString(R.string.item_was_successfully_deleted), Toast.LENGTH_LONG).show();
+                if (finish)
+                    activity.finish();
             } else
-                Toast.makeText(activity, getString(R.string.failed_to_delete_item), Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, activity.getString(R.string.failed_to_delete_item), Toast.LENGTH_LONG).show();
         }
     }
 

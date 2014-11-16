@@ -9,11 +9,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,8 +32,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
+import cz.cendrb.utu.administrationactivities.AddEditEvent;
 import cz.cendrb.utu.administrationactivities.AddEditExam;
 import cz.cendrb.utu.administrationactivities.AddEditTask;
+import cz.cendrb.utu.enums.LoadResult;
+import cz.cendrb.utu.enums.UTUType;
+import cz.cendrb.utu.utucomponents.Event;
 import cz.cendrb.utu.utucomponents.Events;
 import cz.cendrb.utu.utucomponents.Exam;
 import cz.cendrb.utu.utucomponents.Exams;
@@ -41,6 +47,7 @@ import cz.cendrb.utu.utucomponents.Tasks;
 
 public class utu extends Activity implements ActionBar.TabListener {
 
+    public static final String UTU_TYPE_IDENTIFIER = "utu_type";
     static final String NAME = "UTU";
     public static UtuClient utuClient = new UtuClient();
     static boolean administrator;
@@ -59,6 +66,7 @@ public class utu extends Activity implements ActionBar.TabListener {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    private HashMap<String, String> contextMenuCurrentItemData;
 
     public static String getPrefix() {
         return NAME;
@@ -70,7 +78,6 @@ public class utu extends Activity implements ActionBar.TabListener {
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,6 +162,11 @@ public class utu extends Activity implements ActionBar.TabListener {
         refresher.execute();
     }
 
+    private void refresh() {
+        int current = mViewPager.getCurrentItem();
+        refresh(current);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -193,6 +205,11 @@ public class utu extends Activity implements ActionBar.TabListener {
             Intent intent = new Intent(this, AddEditTask.class);
             startActivity(intent);
         }
+        if (id == 3) {
+            DateFormat format = new SimpleDateFormat(" dd. MM. yyyy (HH:mm)");
+            Date date = new Date(utuClient.getLastModifiedFromBackupData(this));
+            Toast.makeText(this, getString(R.string.data_from_backup) + format.format(date), Toast.LENGTH_LONG).show();
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -222,6 +239,85 @@ public class utu extends Activity implements ActionBar.TabListener {
 
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        ListView listView = (ListView) v;
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+        contextMenuCurrentItemData = ((HashMap<String, String>) listView.getItemAtPosition(info.position));
+        String additionalInfoUrl = contextMenuCurrentItemData.get(Task.ADDITIONAL_INFO_URL);
+
+        if (!additionalInfoUrl.equals("žádné"))
+            menu.add(Menu.NONE, 1, 100, R.string.open_link_for_more_information);
+        if (utuClient.isLoggedIn())
+            menu.add(Menu.NONE, 2, 101, R.string.hide);
+        if (utuClient.isLoggedIn() && administrator) {
+            menu.add(Menu.NONE, 3, 102, R.string.edit);
+            menu.add(Menu.NONE, 4, 103, R.string.exterminate);
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        UTUType type = UTUType.valueOf(contextMenuCurrentItemData.get(UTU_TYPE_IDENTIFIER));
+        int id = Integer.parseInt(contextMenuCurrentItemData.get(Event.ID));
+        int menuItemId = item.getItemId();
+        if (menuItemId == 2)
+            new Hider(this, type, id).execute();
+        else if (menuItemId == 1)
+            openUrl(contextMenuCurrentItemData.get(Event.ADDITIONAL_INFO_URL));
+
+        switch (type) {
+            case event:
+                if (menuItemId == 4)
+                    new AddEditEvent.EventRemover(this, id, new Runnable() {
+                        @Override
+                        public void run() {
+                            refresh();
+                        }
+                    }).execute();
+                else if (menuItemId == 3) {
+
+                }
+                break;
+            case exam:
+                if (menuItemId == 4)
+                    new AddEditExam.ExamRemover(this, id, new Runnable() {
+                        @Override
+                        public void run() {
+                            refresh();
+                        }
+                    }).execute();
+                else if (menuItemId == 3) {
+                    Exam exam = utuClient.exams.findExamWithId(id);
+                    exam.startEditActivity(this);
+                }
+                break;
+            case task:
+                if (menuItemId == 4)
+                    new AddEditTask.TaskRemover(this, id, new Runnable() {
+                        @Override
+                        public void run() {
+                            refresh();
+                        }
+                    }).execute();
+                else if (menuItemId == 3) {
+                    Task task = utuClient.tasks.findTaskWithId(id);
+                    task.startEditActivity(this);
+                }
+                break;
+        }
+
+        return super.onContextItemSelected(item);
+    }
+
+    private void openUrl(String url) {
+
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(browserIntent);
+
     }
 
     /**
@@ -256,7 +352,7 @@ public class utu extends Activity implements ActionBar.TabListener {
             Bundle bundle = getArguments();
             sectionNumber = bundle.getInt(ARG_SECTION_NUMBER);
             View rootView = inflater.inflate(R.layout.fragment_utu, container, false);
-            ListView list = (ListView) rootView.findViewById(R.id.utuListView);
+            final ListView list = (ListView) rootView.findViewById(R.id.utuListView);
 
             switch (sectionNumber) {
                 case 1:
@@ -270,47 +366,12 @@ public class utu extends Activity implements ActionBar.TabListener {
                     break;
             }
 
+            registerForContextMenu(list);
+
             list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    registerForContextMenu(view);
-                    getActivity().openContextMenu(view);
-                    unregisterForContextMenu(view);
-                }
-            });
-
-            list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    if (administrator) {
-                        switch (sectionNumber) {
-                            case 1:
-                                HashMap<String, String> taskData = ((HashMap<String, String>) adapterView.getItemAtPosition(i));
-                                int taskId = Integer.parseInt(taskData.get(Task.ID));
-                                Task task = utu.utuClient.tasks.findTaskWithId(taskId);
-                                if (task != null) {
-                                    task.startEditActivity(getActivity());
-                                } else {
-                                    Log.d(getPrefix(), "Unable to find task with id: " + String.valueOf(taskId));
-                                }
-                                break;
-                            case 2:
-                                break;
-                            case 3:
-                                HashMap<String, String> examData = ((HashMap<String, String>) adapterView.getItemAtPosition(i));
-                                int examId = Integer.parseInt(examData.get(Task.ID));
-                                Exam exam = utu.utuClient.exams.findExamWithId(examId);
-                                if (exam != null) {
-                                    exam.startEditActivity(getActivity());
-                                } else {
-                                    Log.d(getPrefix(), "Unable to find exam with id: " + String.valueOf(examId));
-                                }
-                                break;
-                        }
-                        return true;
-                    } else {
-                        return false;
-                    }
+                    list.showContextMenuForChild(view);
                 }
             });
 
@@ -388,6 +449,39 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
     }
 
+    public class Hider extends TaskWithProgressDialog<Void> {
+        UTUType type;
+        int id;
+
+        public Hider(Activity activity, UTUType type, int id) {
+            super(activity, getString(R.string.wait), getString(R.string.hiding_item));
+            this.type = type;
+            this.id = id;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            switch (type) {
+                case event:
+                    utuClient.hideEvent(id);
+                    break;
+                case exam:
+                    utuClient.hideExam(id);
+                    break;
+                case task:
+                    utuClient.hideTask(id);
+                    break;
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            refresh();
+        }
+    }
+
     public class Refresher extends TaskWithProgressDialog<LoadResult> {
 
         public Refresher(Activity activity, String titleMessage, String message, Runnable postAction) {
@@ -402,7 +496,7 @@ public class utu extends Activity implements ActionBar.TabListener {
                 }
             } else {
                 if (utu.utuClient.backupExists(activity)) {
-                    if(utu.utuClient.loadFromBackup(activity))
+                    if (utu.utuClient.loadFromBackup(activity))
                         return LoadResult.BackupSuccess;
                     else
                         return LoadResult.BackupFailure;
@@ -414,10 +508,10 @@ public class utu extends Activity implements ActionBar.TabListener {
         @Override
         protected void onPostExecute(LoadResult loadResult) {
             DateFormat format = new SimpleDateFormat(" dd. MM. yyyy (HH:mm)");
-            DateFormat labelFormat = new SimpleDateFormat(" - dd. MM. (HH:mm)");
+            DateFormat labelFormat = new SimpleDateFormat("dd. MM. (HH:mm)");
             switch (loadResult) {
                 case WebSuccess:
-                    activity.setTitle(activity.getString(R.string.app_name) + " (AKTUÁLNÍ)");
+                    activity.setTitle(activity.getString(R.string.app_name));
                     break;
                 case BackupFailure:
                     Toast.makeText(activity, getString(R.string.failed_to_load_data_from_backup), Toast.LENGTH_LONG).show();
@@ -426,7 +520,11 @@ public class utu extends Activity implements ActionBar.TabListener {
                 case BackupSuccess:
                     Date date = new Date(utuClient.getLastModifiedFromBackupData(activity));
                     Toast.makeText(activity, getString(R.string.successfully_loaded_from_backup) + format.format(date), Toast.LENGTH_LONG).show();
-                    activity.setTitle(activity.getString(R.string.app_name) + labelFormat.format(date));
+                    activity.setTitle(activity.getString(R.string.app_name));
+                    menu.removeItem(3);
+                    MenuItem menuItem = menu.add(Menu.CATEGORY_CONTAINER, 3, 90, R.string.data_version);
+                    menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+                    menuItem.setIcon(android.R.drawable.ic_dialog_alert);
                     break;
                 case Failure:
                     Toast.makeText(activity, R.string.failed_to_load_data, Toast.LENGTH_LONG).show();

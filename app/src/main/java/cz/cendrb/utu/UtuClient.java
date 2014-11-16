@@ -40,6 +40,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import cz.cendrb.utu.enums.LoginRequestResult;
 import cz.cendrb.utu.utucomponents.Events;
 import cz.cendrb.utu.utucomponents.Exam;
 import cz.cendrb.utu.utucomponents.Exams;
@@ -55,11 +56,8 @@ public class UtuClient {
     public Tasks tasks;
 
     public HashMap<String, Integer> subjects;
-
-    private boolean loggedIn;
-
     HttpClient client;
-
+    private boolean loggedIn;
 
 
     public UtuClient() {
@@ -117,6 +115,29 @@ public class UtuClient {
         }
     }
 
+    public void hideExam(int id) {
+        try {
+            sendGETRequestTo("http://utu.herokuapp.com/exams/" + id + "/hide");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void hideTask(int id) {
+        try {
+            sendGETRequestTo("http://utu.herokuapp.com/tasks/" + id + "/hide");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void hideEvent(int id) {
+        try {
+            sendGETRequestTo("http://utu.herokuapp.com/events/" + id + "/hide");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public boolean updateTask(Task task) {
         try {
@@ -168,11 +189,24 @@ public class UtuClient {
         }
     }
 
+
+    public boolean deleteEvent(int id) {
+        try {
+            List<NameValuePair> data = new ArrayList<NameValuePair>();
+            data.add(new BasicNameValuePair("_method", "delete"));
+            String result = getStringFrom(getPOSTResponseWithParams("http://utu.herokuapp.com/events/" + id + ".whoa", data));
+            return result.equals("success");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean deleteExam(int id) {
         try {
-            List<NameValuePair> examData = new ArrayList<NameValuePair>();
-            examData.add(new BasicNameValuePair("_method", "delete"));
-            String result = getStringFrom(getPOSTResponseWithParams("http://utu.herokuapp.com/exams/" + id + ".whoa", examData));
+            List<NameValuePair> data = new ArrayList<NameValuePair>();
+            data.add(new BasicNameValuePair("_method", "delete"));
+            String result = getStringFrom(getPOSTResponseWithParams("http://utu.herokuapp.com/exams/" + id + ".whoa", data));
             return result.equals("success");
         } catch (IOException e) {
             e.printStackTrace();
@@ -182,9 +216,9 @@ public class UtuClient {
 
     public boolean deleteTask(int id) {
         try {
-            List<NameValuePair> examData = new ArrayList<NameValuePair>();
-            examData.add(new BasicNameValuePair("_method", "delete"));
-            String result = getStringFrom(getPOSTResponseWithParams("http://utu.herokuapp.com/tasks/" + id + ".whoa", examData));
+            List<NameValuePair> data = new ArrayList<NameValuePair>();
+            data.add(new BasicNameValuePair("_method", "delete"));
+            String result = getStringFrom(getPOSTResponseWithParams("http://utu.herokuapp.com/tasks/" + id + ".whoa", data));
             return result.equals("success");
         } catch (IOException e) {
             e.printStackTrace();
@@ -204,7 +238,7 @@ public class UtuClient {
         return loggedIn;
     }
 
-    public boolean login(String email, String password) {
+    public LoginRequestResult login(String email, String password) {
         try {
             List<NameValuePair> loginData = new ArrayList<NameValuePair>();
             loginData.add(new BasicNameValuePair("email", email));
@@ -213,7 +247,10 @@ public class UtuClient {
             HttpResponse response = getPOSTResponseWithParams("http://utu.herokuapp.com/login.whoa", loginData);
             Log.d(utu.getPrefix(), response.getStatusLine().toString());
             loggedIn = response.getStatusLine().getStatusCode() == 200;
-            return loggedIn;
+            if (loggedIn)
+                return LoginRequestResult.LoggedIn;
+            else
+                return LoginRequestResult.WrongCredentials;
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -222,7 +259,7 @@ public class UtuClient {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return false;
+        return LoginRequestResult.FailedToConnect;
     }
 
     public void logout() {
@@ -276,8 +313,7 @@ public class UtuClient {
         return true;
     }
 
-    public boolean backupExists(Activity activity)
-    {
+    public boolean backupExists(Activity activity) {
         File utuFile = activity.getFileStreamPath(BACKUP_FILE_NAME);
         File subjectsFile = activity.getFileStreamPath(BACKUP_SUBJECTS_FILE_NAME);
         return utuFile.exists() && subjectsFile.exists();
@@ -287,10 +323,14 @@ public class UtuClient {
         return activity.getFileStreamPath(BACKUP_FILE_NAME).lastModified();
     }
 
+    private HttpResponse sendGETRequestTo(String url) throws IOException {
+        return client.execute(new HttpGet(url));
+    }
+
     private String getStringFrom(String url) {
         HttpResponse response;
         try {
-            response = client.execute(new HttpGet(url));
+            response = sendGETRequestTo(url);
             return getStringFrom(response);
         } catch (IOException e) {
             e.printStackTrace();

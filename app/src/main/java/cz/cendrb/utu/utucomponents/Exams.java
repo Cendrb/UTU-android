@@ -10,9 +10,9 @@ import java.util.List;
 import cz.cendrb.utu.R;
 
 public class Exams {
-    public List<Exam> exams;
     public static String[] from;
     public static int[] to;
+    public List<Exam> exams;
 
     public Exams(List<Exam> exams) {
         this.exams = exams;
@@ -37,7 +37,7 @@ public class Exams {
 
     public Exam findExamWithId(int id) {
         for (Exam exam : exams) {
-            if(exam.getId() == id)
+            if (exam.getId() == id)
                 return exam;
         }
         return null;
@@ -45,9 +45,9 @@ public class Exams {
 
     private void setFromAndTo() {
         from = new String[]{Exam.TITLE, Exam.DESCRIPTION, Exam.SUBJECT,
-                Exam.DATE, Exam.GROUP};
+                Exam.DATE, Exam.GROUP, Exam.ADDITIONAL_INFO_URL};
         to = new int[]{R.id.examTitle, R.id.examDescription, R.id.examSubject, R.id.examDatum,
-                R.id.examGroup};
+                R.id.examGroup, R.id.examAdditionalInfo};
     }
 
     public List<HashMap<String, String>> getListForAdapter() {

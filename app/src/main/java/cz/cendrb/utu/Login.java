@@ -12,6 +12,8 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import cz.cendrb.utu.enums.LoginResult;
+
 public class Login extends Activity {
 
     public static final String EMAIL = "email";
@@ -90,11 +92,17 @@ public class Login extends Activity {
         @Override
         protected LoginResult doInBackground(Void... voids) {
             if (utu.isOnline(activity)) {
-                if (utu.utuClient.login(email.getText().toString(), password.getText().toString())) {
-                    showData();
-                    return LoginResult.WebLoginSuccess;
-                } else
-                    return LoginResult.InvalidUsernameOrPassword;
+                switch (utu.utuClient.login(email.getText().toString(), password.getText().toString())) {
+                    case LoggedIn:
+                        showData();
+                        return LoginResult.WebLoginSuccess;
+                    case WrongCredentials:
+                        return LoginResult.InvalidUsernameOrPassword;
+                    case FailedToConnect:
+                        return LoginResult.FailedToConnect;
+                    default:
+                        return LoginResult.FailedToConnect;
+                }
             } else {
                 return LoginResult.FailedToConnect;
             }

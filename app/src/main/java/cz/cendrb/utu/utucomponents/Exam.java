@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import cz.cendrb.utu.administrationactivities.AddEditExam;
-import cz.cendrb.utu.administrationactivities.AddEditTask;
 import cz.cendrb.utu.utu;
 
 public class Exam {
@@ -72,6 +71,11 @@ public class Exam {
         record.put(DESCRIPTION, description);
         record.put(SUBJECT, subjectString);
         record.put(DATE, dateFormat.format(date));
+        if (additionalInfoUrl.equals(""))
+            record.put(ADDITIONAL_INFO_URL, "žádné");
+        else
+            record.put(ADDITIONAL_INFO_URL, additionalInfoUrl);
+        record.put(utu.UTU_TYPE_IDENTIFIER, "exam");
         String stringGroup = "";
         switch (group) {
             case 0:
@@ -89,8 +93,7 @@ public class Exam {
         return record;
     }
 
-    public void startEditActivity(Context context)
-    {
+    public void startEditActivity(Context context) {
         Intent intent = new Intent(context, AddEditExam.class);
         intent.putExtra(Exam.TITLE, title);
         intent.putExtra(Exam.DESCRIPTION, description);

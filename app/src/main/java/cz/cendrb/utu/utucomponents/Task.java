@@ -70,6 +70,11 @@ public class Task {
         record.put(DESCRIPTION, description);
         record.put(SUBJECT, subjectString);
         record.put(DATE, dateFormat.format(date));
+        if (additionalInfoUrl.equals(""))
+            record.put(ADDITIONAL_INFO_URL, "žádné");
+        else
+            record.put(ADDITIONAL_INFO_URL, additionalInfoUrl);
+        record.put(utu.UTU_TYPE_IDENTIFIER, "task");
         String stringGroup = "";
         switch (group) {
             case 0:

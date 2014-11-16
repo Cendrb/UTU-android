@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
+import cz.cendrb.utu.utu;
+
 public class Event {
 
     public static final String TITLE = "title";
@@ -20,6 +22,7 @@ public class Event {
     public static final String END = "eventEnd";
     public static final String PAY_DATE = "payDate";
     public static final String ID = "id";
+    public static final String ADDITIONAL_INFO_URL = "additional_info_url";
 
     int id;
     String title;
@@ -29,6 +32,7 @@ public class Event {
     Date start;
     Date end;
     Date pay;
+    String additionalInfoUrl;
 
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd. MM. yyyy", Locale.ENGLISH);
 
@@ -38,6 +42,7 @@ public class Event {
         description = data.getAttribute(DESCRIPTION);
         location = data.getAttribute(LOCATION);
         price = Double.parseDouble(data.getAttribute(PRICE));
+        additionalInfoUrl = data.getAttribute(ADDITIONAL_INFO_URL);
         try {
             start = df.parse(data.getAttribute(START));
             end = df.parse(data.getAttribute(END));
@@ -61,6 +66,12 @@ public class Event {
         record.put(START, dateFormat.format(start));
         record.put(END, dateFormat.format(end));
         record.put(PAY_DATE, dateFormat.format(pay));
+        if (additionalInfoUrl.equals(""))
+            record.put(ADDITIONAL_INFO_URL, "žádné");
+        else
+            record.put(ADDITIONAL_INFO_URL, additionalInfoUrl);
+        record.put(utu.UTU_TYPE_IDENTIFIER, "event");
+        record.put(ID, String.valueOf(id));
         return record;
     }
 
@@ -94,5 +105,9 @@ public class Event {
 
     public Date getEnd() {
         return end;
+    }
+
+    public String getAdditionalInfoUrl() {
+        return additionalInfoUrl;
     }
 }
