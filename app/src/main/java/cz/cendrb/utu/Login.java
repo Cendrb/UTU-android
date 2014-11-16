@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -30,9 +29,7 @@ public class Login extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-        final Activity activity = this;
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         Button login = (Button) findViewById(R.id.loginButton);
         Button viewAll = (Button) findViewById(R.id.loginViewAll);
@@ -77,7 +74,7 @@ public class Login extends Activity {
     }
 
     private void login() {
-        new LoginWithProgressDialog(this, getResources().getString(R.string.wait), getResources().getString(R.string.logging_in), null).execute();
+        new LoginWithProgressDialog(this).execute();
     }
 
     private void showData() {
@@ -86,8 +83,8 @@ public class Login extends Activity {
     }
 
     public class LoginWithProgressDialog extends TaskWithProgressDialog<LoginResult> {
-        public LoginWithProgressDialog(Activity activity, String titleMessage, String message, Runnable postAction) {
-            super(activity, titleMessage, message, postAction);
+        public LoginWithProgressDialog(Activity activity) {
+            super(activity, getResources().getString(R.string.wait), getResources().getString(R.string.logging_in));
         }
 
         @Override

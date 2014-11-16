@@ -62,5 +62,7 @@
     <string name="item_deleting">Probíhá mazání položky</string>
     <string name="item_was_successfully_deleted">Položka byla úspěšně vymazána</string>
     <string name="failed_to_delete_item">Položku se nepodařilo smazat</string>
+    <string name="edit_exam">Upravit test</string>
+    <string name="edit_task">Upravit úkol</string>
 
 </resources>

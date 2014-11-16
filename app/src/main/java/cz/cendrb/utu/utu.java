@@ -2,14 +2,11 @@ package cz.cendrb.utu;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -45,13 +42,8 @@ import cz.cendrb.utu.utucomponents.Tasks;
 public class utu extends Activity implements ActionBar.TabListener {
 
     static final String NAME = "UTU";
-    boolean administrator;
-
-    public static String getPrefix() {
-        return NAME;
-    }
-
     public static UtuClient utuClient = new UtuClient();
+    static boolean administrator;
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
      * fragments for each of the sections. We use a
@@ -61,13 +53,16 @@ public class utu extends Activity implements ActionBar.TabListener {
      * {@link android.support.v13.app.FragmentStatePagerAdapter}.
      */
     SectionsPagerAdapter mSectionsPagerAdapter;
-
     //Handler handler = new Handler();
     Menu menu;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+
+    public static String getPrefix() {
+        return NAME;
+    }
 
     public static boolean isOnline(Context context) {
         ConnectivityManager cm =
@@ -81,7 +76,7 @@ public class utu extends Activity implements ActionBar.TabListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         setContentView(R.layout.activity_utu);
 
@@ -129,6 +124,18 @@ public class utu extends Activity implements ActionBar.TabListener {
                 new IsAdministrator().execute();
             }
         }).execute();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == 1 && data.getBooleanExtra("result", false)) {
+                int current = mViewPager.getCurrentItem();
+                refresh(current);
+            }
+        }
     }
 
     @Override
@@ -220,7 +227,7 @@ public class utu extends Activity implements ActionBar.TabListener {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public class PlaceholderFragment extends Fragment {
+    public static class PlaceholderFragment extends Fragment {
         /**
          * The fragment argument representing the section number for this
          * fragment.
@@ -228,13 +235,26 @@ public class utu extends Activity implements ActionBar.TabListener {
         private static final String ARG_SECTION_NUMBER = "section_number";
         private int sectionNumber;
 
-        public PlaceholderFragment(int sectionNumber) {
-            this.sectionNumber = sectionNumber;
+        public PlaceholderFragment() {
+        }
+
+        /**
+         * Returns a new instance of this fragment for the given section
+         * number.
+         */
+        public static PlaceholderFragment newInstance(int sectionNumber) {
+            PlaceholderFragment fragment = new PlaceholderFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            fragment.setArguments(args);
+            return fragment;
         }
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
+            Bundle bundle = getArguments();
+            sectionNumber = bundle.getInt(ARG_SECTION_NUMBER);
             View rootView = inflater.inflate(R.layout.fragment_utu, container, false);
             ListView list = (ListView) rootView.findViewById(R.id.utuListView);
 
@@ -249,6 +269,15 @@ public class utu extends Activity implements ActionBar.TabListener {
                     list.setAdapter(new SimpleAdapter(container.getContext(), utu.utuClient.exams.getListForAdapter(), R.layout.exam_item, Exams.from, Exams.to));
                     break;
             }
+
+            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    registerForContextMenu(view);
+                    getActivity().openContextMenu(view);
+                    unregisterForContextMenu(view);
+                }
+            });
 
             list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
@@ -303,7 +332,7 @@ public class utu extends Activity implements ActionBar.TabListener {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return new PlaceholderFragment(position + 1);
+            return PlaceholderFragment.newInstance(position + 1);
         }
 
         @Override

@@ -1,6 +1,6 @@
 package cz.cendrb.utu.utucomponents;
 
-import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
 import android.util.Log;
 
@@ -87,8 +87,7 @@ public class Task {
         return record;
     }
 
-    public void startEditActivity(Context context)
-    {
+    public void startEditActivity(Activity context) {
         Intent intent = new Intent(context, AddEditTask.class);
         intent.putExtra(Task.TITLE, title);
         intent.putExtra(Task.DESCRIPTION, description);
@@ -97,7 +96,7 @@ public class Task {
         intent.putExtra(Task.GROUP, group);
         intent.putExtra(Task.ADDITIONAL_INFO_URL, additionalInfoUrl);
         intent.putExtra(Task.ID, id);
-        context.startActivity(intent);
+        context.startActivityForResult(intent, 1);
     }
 
     public String getTitle() {

@@ -1,8 +1,6 @@
 package cz.cendrb.utu.administrationactivities;
 
 import android.app.Activity;
-import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.ParseException;
@@ -26,9 +25,6 @@ import cz.cendrb.utu.TaskWithProgressDialog;
 import cz.cendrb.utu.utu;
 import cz.cendrb.utu.utucomponents.Task;
 
-/**
- * Created by Cendrb on 27. 10. 2014.
- */
 public class AddEditTask extends Activity {
 
     SimpleDateFormat format = new SimpleDateFormat("dd. MM. yyyy");
@@ -49,7 +45,7 @@ public class AddEditTask extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_add_task);
 
         subjectSelect = (Spinner) findViewById(R.id.addTaskSubject);
@@ -102,7 +98,7 @@ public class AddEditTask extends Activity {
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             String title = bundle.getString(Task.TITLE);
-            if (title != null && title != "") {
+            if (title != null && !title.equals("")) {
                 titleText.setText(title);
                 descriptionText.setText(bundle.getString(Task.DESCRIPTION));
                 subjectSelect.setSelection(new ArrayList<Integer>(utu.utuClient.subjects.values()).indexOf(bundle.getInt(Task.SUBJECT)));
@@ -120,6 +116,15 @@ public class AddEditTask extends Activity {
             }
         }
 
+        TextView titleText = (TextView) findViewById(R.id.labelTitle);
+        if (editMode) {
+            titleText.setText(R.string.edit_task);
+            setTitle(R.string.edit_task);
+        } else {
+            titleText.setText(R.string.new_task);
+            setTitle(R.string.new_task);
+        }
+
         super.onCreate(savedInstanceState);
     }
 
@@ -127,8 +132,7 @@ public class AddEditTask extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.generic_item, menu);
-        if(editMode)
-        {
+        if (editMode) {
             menu.add(Menu.NONE, 0, 100, getString(R.string.exterminate));
             menu.getItem(0).setIcon(android.R.drawable.ic_menu_delete);
             menu.getItem(0).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);

@@ -1,13 +1,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".utu"
-    android:id="@+id/utu_menu">
-    <item android:id="@+id/action_refresh"
-        android:title="@string/action_refresh"
+    android:id="@+id/utu_menu"
+    tools:context=".utu">
+    <item
+        android:id="@+id/action_refresh"
+        android:icon="@android:drawable/ic_popup_sync"
         android:orderInCategory="1"
-        android:showAsAction="ifRoom"/>
-    <item android:id="@+id/action_logout"
-        android:title="@string/logout"
+        android:showAsAction="ifRoom"
+        android:title="@string/action_refresh" />
+    <item
+        android:id="@+id/action_logout"
+        android:icon="@android:drawable/ic_lock_power_off"
         android:orderInCategory="2"
-        android:showAsAction="ifRoom"/>
+        android:showAsAction="ifRoom"
+        android:title="@string/logout" />
 </menu>

@@ -1,71 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:weightSum="1">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/new_exam"
-        android:id="@+id/textView"
-        android:layout_marginTop="20dp"
-        android:layout_gravity="center_horizontal" />
-
-    <EditText
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/addExamName"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="10dp"
-        android:hint="@string/title" />
+        android:layout_height="wrap_content">
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textMultiLine"
-        android:ems="10"
-        android:id="@+id/addExamDescription"
-        android:hint="@string/description"
-        android:layout_marginTop="5dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/addExamAdditionalInformation"
-        android:layout_gravity="center_horizontal"
-        android:inputType="textUri"
-        android:hint="@string/more_info_url"
-        android:layout_marginTop="5dp" />
+            <TextView
+                android:id="@+id/labelTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20dp"
+                android:text="@string/new_exam"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <Spinner
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/addExamSubject"
-        android:spinnerMode="dropdown" />
+            <EditText
+                android:id="@+id/addExamName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:hint="@string/title" />
 
-    <Spinner
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/addExamGroup"
-        android:spinnerMode="dropdown" />
+            <EditText
+                android:id="@+id/addExamDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:ems="10"
+                android:hint="@string/description"
+                android:inputType="textMultiLine" />
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Date"
-        android:id="@+id/addExamDate"
-        android:layout_marginTop="2dp"
-        android:onClick="onDateSelectButtonClick" />
+            <EditText
+                android:id="@+id/addExamAdditionalInformation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="5dp"
+                android:hint="@string/more_info_url"
+                android:inputType="textUri" />
 
-    <Button
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/save"
-        android:id="@+id/addExamSaveButton"
-        android:layout_marginTop="10dp"
-        android:onClick="onSaveButtonClick" />
+            <Spinner
+                android:id="@+id/addExamSubject"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:spinnerMode="dropdown" />
 
+            <Spinner
+                android:id="@+id/addExamGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:spinnerMode="dropdown" />
+
+            <Button
+                android:id="@+id/addExamDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:onClick="onDateSelectButtonClick"
+                android:text="Date" />
+
+            <Button
+                android:id="@+id/addExamSaveButton"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:onClick="onSaveButtonClick"
+                android:text="@string/save" />
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>
