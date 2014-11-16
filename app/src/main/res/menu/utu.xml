@@ -14,8 +14,4 @@
         android:orderInCategory="2"
         android:showAsAction="ifRoom"
         android:title="@string/logout" />
-    <item
-        android:id="@+id/action_web_version"
-        android:orderInCategory="98"
-        android:title="@string/web_version" />
 </menu>

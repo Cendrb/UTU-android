@@ -33,14 +33,14 @@
     <string name="username_email">Přihlašovací jméno (email)</string>
     <string name="password">Heslo</string>
     <string name="login_button">Přihlásit se</string>
-    <string name="permanent_login">Trvalé přihlášení</string>
+    <string name="permanent_login">Zapamatovat údaje</string>
     <string name="or">nebo</string>
     <string name="view_all">Zobrazit vše bez ohledu na uživatele</string>
     <string name="wrong_username_or_password">Špatné uživatelské jméno nebo heslo</string>
     <string name="yes">Ano</string>
     <string name="no">Ne</string>
     <string name="logging_in">Probíhá přihlašování</string>
-    <string name="auto_login">Automatické přihlášení</string>
+    <string name="auto_login">Automaticky přihlásit</string>
     <string name="logging_off">Probíhá odhlašování</string>
     <string name="new_exam">Nový test</string>
     <string name="new_task">Nový úkol</string>

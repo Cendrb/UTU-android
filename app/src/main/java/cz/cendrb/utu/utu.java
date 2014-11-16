@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
@@ -267,7 +266,7 @@ public class utu extends Activity implements ActionBar.TabListener {
         if (menuItemId == 2)
             new Hider(this, type, id).execute();
         else if (menuItemId == 1)
-            openUrl(contextMenuCurrentItemData.get(Event.ADDITIONAL_INFO_URL));
+            UtuClient.openUrl(this, contextMenuCurrentItemData.get(Event.ADDITIONAL_INFO_URL));
 
         switch (type) {
             case event:
@@ -311,13 +310,6 @@ public class utu extends Activity implements ActionBar.TabListener {
         }
 
         return super.onContextItemSelected(item);
-    }
-
-    private void openUrl(String url) {
-
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        startActivity(browserIntent);
-
     }
 
     /**
@@ -522,8 +514,8 @@ public class utu extends Activity implements ActionBar.TabListener {
                     Toast.makeText(activity, getString(R.string.successfully_loaded_from_backup) + format.format(date), Toast.LENGTH_LONG).show();
                     activity.setTitle(activity.getString(R.string.app_name));
                     menu.removeItem(3);
-                    MenuItem menuItem = menu.add(Menu.CATEGORY_CONTAINER, 3, 90, R.string.data_version);
-                    menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+                    MenuItem menuItem = menu.add(Menu.NONE, 3, 90, R.string.data_version);
+                    menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
                     menuItem.setIcon(android.R.drawable.ic_dialog_alert);
                     break;
                 case Failure:

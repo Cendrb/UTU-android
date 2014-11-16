@@ -1,6 +1,8 @@
 package cz.cendrb.utu;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 
 import org.apache.http.HttpResponse;
@@ -65,6 +67,13 @@ public class UtuClient {
         exams = new Exams();
         tasks = new Tasks();
         client = new DefaultHttpClient();
+    }
+
+    public static void openUrl(Activity activity, String url) {
+
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        activity.startActivity(browserIntent);
+
     }
 
     public boolean addExam(Exam exam) {
@@ -188,7 +197,6 @@ public class UtuClient {
             return false;
         }
     }
-
 
     public boolean deleteEvent(int id) {
         try {

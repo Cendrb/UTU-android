@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
-import cz.cendrb.utu.ManualSelect;
 import cz.cendrb.utu.R;
 import cz.cendrb.utu.TaskWithProgressDialog;
 import cz.cendrb.utu.utu;
@@ -153,18 +152,6 @@ public class AddEditExam extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    public void onDateSelectButtonClick(final View view) {
-        ManualSelect.DatePickerFragment dialog = new ManualSelect.DatePickerFragment();
-        dialog.show(getFragmentManager(), "Choose penis");
-        dialog.setOnDateChangedListener(new ManualSelect.DatePickerFragment.OnDateChangedListener() {
-            @Override
-            public void dateChanged(Date date) {
-                ((Button) view).setText(format.format(date));
-                eDate = date;
-            }
-        });
     }
 
     public void onSaveButtonClick(View view) {
