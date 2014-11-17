@@ -155,10 +155,14 @@ public class AddEditExam extends Activity {
     }
 
     public void onSaveButtonClick(View view) {
-        if (editMode)
-            new ExamUpdater(this).execute();
+        if (utu.isOnline(this)) {
+            if (editMode)
+                new ExamUpdater(this).execute();
+            else
+                new ExamAdder(this).execute();
+        }
         else
-            new ExamAdder(this).execute();
+            Toast.makeText(this, R.string.no_internet_connection_unable_to_add, Toast.LENGTH_LONG).show();
     }
 
     public void onDateSelectButtonClick(final View view) {

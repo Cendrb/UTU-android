@@ -131,22 +131,8 @@ public class utu extends Activity implements ActionBar.TabListener {
                                     .setTabListener(utuActivity)
                     );
                 }
-
-                new IsAdministrator().execute();
             }
         }).execute();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == 1 && data.getBooleanExtra("result", false)) {
-                int current = mViewPager.getCurrentItem();
-                refresh(current);
-            }
-        }
     }
 
     @Override
@@ -167,6 +153,8 @@ public class utu extends Activity implements ActionBar.TabListener {
     }
 
     private void refresh() {
+        menu.clear();
+        onCreateOptionsMenu(menu);
         int current = mViewPager.getCurrentItem();
         refresh(current);
     }
@@ -175,6 +163,8 @@ public class utu extends Activity implements ActionBar.TabListener {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.utu, menu);
+        if (isOnline(this))
+            menu.add(Menu.NONE, 5, 99, R.string.web_version);
         this.menu = menu;
         return true;
     }
@@ -187,11 +177,8 @@ public class utu extends Activity implements ActionBar.TabListener {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
             item.setEnabled(false);
-            int current = mViewPager.getCurrentItem();
-            refresh(current);
-
+            refresh();
             item.setEnabled(true);
-
             return true;
         }
         if (id == R.id.action_logout) {
@@ -203,16 +190,23 @@ public class utu extends Activity implements ActionBar.TabListener {
             // New exam
             Intent intent = new Intent(this, AddEditExam.class);
             startActivity(intent);
+            return true;
         }
         if (id == 2) {
             // New task
             Intent intent = new Intent(this, AddEditTask.class);
             startActivity(intent);
+            return true;
         }
         if (id == 3) {
             DateFormat format = new SimpleDateFormat(" dd. MM. yyyy (HH:mm)");
             Date date = new Date(utuClient.getLastModifiedFromBackupData(this));
             Toast.makeText(this, getString(R.string.data_from_backup) + format.format(date), Toast.LENGTH_LONG).show();
+            return true;
+        }
+        if (id == 5) {
+            UtuClient.openUrl(this, "http://utu.herokuapp.com");
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -248,6 +242,7 @@ public class utu extends Activity implements ActionBar.TabListener {
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
+        menu.clear();
         ListView listView = (ListView) v;
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
         contextMenuCurrentItemData = ((HashMap<String, String>) listView.getItemAtPosition(info.position));
@@ -269,45 +264,57 @@ public class utu extends Activity implements ActionBar.TabListener {
         int id = Integer.parseInt(contextMenuCurrentItemData.get(Event.ID));
         int menuItemId = item.getItemId();
         if (menuItemId == 2)
-            new Hider(this, type, id).execute();
-        else if (menuItemId == 1)
+            if (isOnline(this))
+                new Hider(this, type, id).execute();
+            else
+                Toast.makeText(this, R.string.no_internet_connection_unable_to_hide, Toast.LENGTH_LONG).show();
+        if (menuItemId == 1)
             UtuClient.openUrl(this, contextMenuCurrentItemData.get(Event.ADDITIONAL_INFO_URL));
 
         switch (type) {
             case event:
                 if (menuItemId == 4)
-                    new AddEditEvent.EventRemover(this, id, new Runnable() {
-                        @Override
-                        public void run() {
-                            refresh();
-                        }
-                    }).execute();
-                else if (menuItemId == 3) {
+                    if (isOnline(this))
+                        new AddEditEvent.EventRemover(this, id, new Runnable() {
+                            @Override
+                            public void run() {
+                                refresh();
+                            }
+                        }).execute();
+                    else
+                        Toast.makeText(this, R.string.no_internet_connection_unable_to_delete, Toast.LENGTH_LONG).show();
+                if (menuItemId == 3) {
 
                 }
                 break;
             case exam:
                 if (menuItemId == 4)
-                    new AddEditExam.ExamRemover(this, id, new Runnable() {
-                        @Override
-                        public void run() {
-                            refresh();
-                        }
-                    }).execute();
-                else if (menuItemId == 3) {
+                    if (isOnline(this))
+                        new AddEditExam.ExamRemover(this, id, new Runnable() {
+                            @Override
+                            public void run() {
+                                refresh();
+                            }
+                        }).execute();
+                    else
+                        Toast.makeText(this, R.string.no_internet_connection_unable_to_delete, Toast.LENGTH_LONG).show();
+                if (menuItemId == 3) {
                     Exam exam = utuClient.exams.findExamWithId(id);
                     exam.startEditActivity(this);
                 }
                 break;
             case task:
                 if (menuItemId == 4)
-                    new AddEditTask.TaskRemover(this, id, new Runnable() {
-                        @Override
-                        public void run() {
-                            refresh();
-                        }
-                    }).execute();
-                else if (menuItemId == 3) {
+                    if (isOnline(this))
+                        new AddEditTask.TaskRemover(this, id, new Runnable() {
+                            @Override
+                            public void run() {
+                                refresh();
+                            }
+                        }).execute();
+                    else
+                        Toast.makeText(this, R.string.no_internet_connection_unable_to_delete, Toast.LENGTH_LONG).show();
+                if (menuItemId == 3) {
                     Task task = utuClient.tasks.findTaskWithId(id);
                     task.startEditActivity(this);
                 }
@@ -373,6 +380,39 @@ public class utu extends Activity implements ActionBar.TabListener {
             });
 
             return rootView;
+        }
+    }
+
+    public static class DatePickerFragment extends DialogFragment
+            implements DatePickerDialog.OnDateSetListener {
+
+        OnDateChangedListener dateChanged;
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the current date as the default date in the picker
+            final Calendar c = Calendar.getInstance();
+            int year = c.get(Calendar.YEAR);
+            int month = c.get(Calendar.MONTH);
+            int day = c.get(Calendar.DAY_OF_MONTH);
+
+            // Create a new instance of DatePickerDialog and return it
+            return new DatePickerDialog(getActivity(), this, year, month, day);
+        }
+
+        public void setOnDateChangedListener(OnDateChangedListener listener) {
+            dateChanged = listener;
+        }
+
+        public void onDateSet(DatePicker view, int year, int month, int day) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(year, month, day);
+            if (dateChanged != null)
+                dateChanged.dateChanged(calendar.getTime());
+        }
+
+        public interface OnDateChangedListener {
+            void dateChanged(Date date);
         }
     }
 
@@ -504,6 +544,7 @@ public class utu extends Activity implements ActionBar.TabListener {
 
         @Override
         protected void onPostExecute(LoadResult loadResult) {
+            new IsAdministrator().execute();
             menu.removeItem(3);
             DateFormat format = new SimpleDateFormat(" dd. MM. yyyy (HH:mm)");
             switch (loadResult) {
@@ -528,39 +569,6 @@ public class utu extends Activity implements ActionBar.TabListener {
                     break;
             }
             super.onPostExecute(loadResult);
-        }
-    }
-
-    public static class DatePickerFragment extends DialogFragment
-            implements DatePickerDialog.OnDateSetListener {
-
-        OnDateChangedListener dateChanged;
-
-        public interface OnDateChangedListener {
-            void dateChanged(Date date);
-        }
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the current date as the default date in the picker
-            final Calendar c = Calendar.getInstance();
-            int year = c.get(Calendar.YEAR);
-            int month = c.get(Calendar.MONTH);
-            int day = c.get(Calendar.DAY_OF_MONTH);
-
-            // Create a new instance of DatePickerDialog and return it
-            return new DatePickerDialog(getActivity(), this, year, month, day);
-        }
-
-        public void setOnDateChangedListener(OnDateChangedListener listener) {
-            dateChanged = listener;
-        }
-
-        public void onDateSet(DatePicker view, int year, int month, int day) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(year, month, day);
-            if (dateChanged != null)
-                dateChanged.dateChanged(calendar.getTime());
         }
     }
 

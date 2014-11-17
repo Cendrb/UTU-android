@@ -154,10 +154,13 @@ public class AddEditTask extends Activity {
     }
 
     public void onSaveButtonClick(View view) {
-        if (editMode)
-            new TaskUpdater(this).execute();
-        else
-            new TaskAdder(this).execute();
+        if (utu.isOnline(this)) {
+            if (editMode)
+                new TaskUpdater(this).execute();
+            else
+                new TaskAdder(this).execute();
+        } else
+            Toast.makeText(this, R.string.no_internet_connection_unable_to_add, Toast.LENGTH_LONG).show();
     }
 
     public void onDateSelectButtonClick(final View view) {

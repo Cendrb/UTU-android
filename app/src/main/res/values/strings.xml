@@ -72,5 +72,8 @@
     <string name="data_version">Verze dat</string>
     <string name="data_from_backup">Jsou zobrazována data ze dne</string>
     <string name="web_version">Webová verze</string>
+    <string name="no_internet_connection_unable_to_add">Nelze se připojit k internetu. Položka nemůže být přidána.</string>
+    <string name="no_internet_connection_unable_to_hide">Nelze se připojit k internetu. Položka nemůže být skryta.</string>
+    <string name="no_internet_connection_unable_to_delete">Nelze se připojit k internetu. Položka nemůže být odstraněna.</string>
 
 </resources>
